@@ -21,9 +21,17 @@ use Illuminate\Validation\Rules\Enum;
 
 final class AdminCategoryController extends Controller
 {
-    public function index(Campaign $campaign): View
+    public function index(Campaign $campaign): View|\Illuminate\Http\RedirectResponse
     {
         $this->authorize('update', $campaign);
+
+        // Team of the Season campaigns must use their dedicated UI which
+        // filters candidates by position. Otherwise admins could attach
+        // an attacker to the goalkeeper line.
+        if ($campaign->type === \App\Modules\Campaigns\Enums\CampaignType::TeamOfTheSeason) {
+            return redirect("/admin/tos/{$campaign->id}/candidates");
+        }
+
         $campaign->load('categories.candidates.player.club', 'categories.candidates.club');
         return view('admin.categories.index', [
             'campaign' => $campaign,
