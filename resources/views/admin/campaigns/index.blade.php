@@ -52,7 +52,7 @@
         <div class="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm hover:shadow-md transition">
             <div class="flex items-start justify-between gap-4">
                 <div>
-                    <a href="{{ route('campaigns.show', $campaign) }}"
+                    <a href="/admin/campaigns/{{ $campaign->id }}"
                        class="text-xl font-bold hover:text-emerald-700 block">{{ $campaign->localized('title') }}</a>
                     <p class="text-sm text-gray-500 mt-1">{{ $campaign->type?->value }}</p>
                 </div>
@@ -86,7 +86,7 @@
             <div class="mt-6 flex flex-wrap gap-2">
                 <a href="{{ url('/vote/'.$campaign->public_token) }}" target="_blank"
                    class="rounded-2xl border px-4 py-2.5 hover:bg-slate-50">{{ __('Public link') }}</a>
-                <a href="{{ route('campaigns.show', $campaign) }}"
+                <a href="/admin/campaigns/{{ $campaign->id }}"
                    class="rounded-2xl bg-slate-900 text-white px-4 py-2.5">{{ __('Manage') }}</a>
             </div>
         </div>
