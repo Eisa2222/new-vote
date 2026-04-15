@@ -1,0 +1,36 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Database\Factories;
+
+use App\Modules\Clubs\Models\Club;
+use App\Modules\Players\Enums\PlayerPosition;
+use App\Modules\Players\Models\Player;
+use App\Modules\Shared\Enums\ActiveStatus;
+use App\Modules\Sports\Models\Sport;
+use Illuminate\Database\Eloquent\Factories\Factory;
+
+final class PlayerFactory extends Factory
+{
+    protected $model = Player::class;
+
+    public function definition(): array
+    {
+        return [
+            'club_id'       => Club::factory(),
+            'sport_id'      => Sport::factory()->state(fn () => [
+                'slug' => fake()->unique()->slug(2),
+                'name_ar' => 'رياضة '.fake()->word(),
+                'name_en' => ucfirst(fake()->word()),
+                'status' => 'active',
+            ]),
+            'name_ar'       => 'لاعب '.fake()->firstNameMale(),
+            'name_en'       => fake()->name('male'),
+            'position'      => fake()->randomElement(PlayerPosition::cases()),
+            'is_captain'    => false,
+            'jersey_number' => fake()->unique()->numberBetween(1, 99),
+            'status'        => ActiveStatus::Active,
+        ];
+    }
+}

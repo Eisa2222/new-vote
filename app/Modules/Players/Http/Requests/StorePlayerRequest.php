@@ -1,0 +1,41 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Modules\Players\Http\Requests;
+
+use App\Modules\Players\Enums\PlayerPosition;
+use App\Modules\Players\Models\Player;
+use App\Modules\Shared\Enums\ActiveStatus;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Enum;
+
+final class StorePlayerRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return $this->user()?->can('create', Player::class) ?? false;
+    }
+
+    public function rules(): array
+    {
+        return [
+            'club_id'       => ['required', 'integer', Rule::exists('clubs', 'id')->whereNull('deleted_at')],
+            'sport_id'      => ['required', 'integer', Rule::exists('sports', 'id')],
+            'name_ar'       => ['required', 'string', 'max:120'],
+            'name_en'       => ['required', 'string', 'max:120'],
+            'photo'         => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp', 'max:4096'],
+            'position'      => ['required', new Enum(PlayerPosition::class)],
+            'is_captain'    => ['boolean'],
+            'jersey_number' => [
+                'nullable', 'integer', 'min:1', 'max:999',
+                Rule::unique('players')
+                    ->where('club_id', $this->integer('club_id'))
+                    ->where('sport_id', $this->integer('sport_id'))
+                    ->whereNull('deleted_at'),
+            ],
+            'status'        => ['nullable', new Enum(ActiveStatus::class)],
+        ];
+    }
+}
