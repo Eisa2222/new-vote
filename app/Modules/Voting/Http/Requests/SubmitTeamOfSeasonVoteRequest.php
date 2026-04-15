@@ -5,12 +5,11 @@ declare(strict_types=1);
 namespace App\Modules\Voting\Http\Requests;
 
 use App\Modules\Campaigns\Domain\TeamOfSeasonFormation;
-use App\Modules\Campaigns\Models\Campaign;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
- * Dynamic sizes per campaign — reads the formation from the campaign's
- * categories so any valid formation (4-3-3, 3-4-3, 5-3-2, ...) is accepted.
+ * Voter-chosen formation — each outfield line is accepted in [MIN_LINE, MAX_LINE].
+ * The Action then enforces goalkeeper=1 and outfield sum=10.
  */
 final class SubmitTeamOfSeasonVoteRequest extends FormRequest
 {
@@ -18,30 +17,18 @@ final class SubmitTeamOfSeasonVoteRequest extends FormRequest
 
     public function rules(): array
     {
-        $token = $this->route('token');
-        $campaign = Campaign::where('public_token', $token)
-            ->with('categories')->firstOrFail();
-        $f = TeamOfSeasonFormation::fromCampaign($campaign);
+        $min = TeamOfSeasonFormation::MIN_LINE;
+        $max = TeamOfSeasonFormation::MAX_LINE;
 
         return [
-            'attack'       => ['required', 'array', 'size:'.$f['attack']],
+            'attack'       => ['required', 'array', "min:{$min}", "max:{$max}"],
             'attack.*'     => ['integer', 'exists:voting_category_candidates,id'],
-            'midfield'     => ['required', 'array', 'size:'.$f['midfield']],
+            'midfield'     => ['required', 'array', "min:{$min}", "max:{$max}"],
             'midfield.*'   => ['integer', 'exists:voting_category_candidates,id'],
-            'defense'      => ['required', 'array', 'size:'.$f['defense']],
+            'defense'      => ['required', 'array', "min:{$min}", "max:{$max}"],
             'defense.*'    => ['integer', 'exists:voting_category_candidates,id'],
-            'goalkeeper'   => ['required', 'array', 'size:'.$f['goalkeeper']],
+            'goalkeeper'   => ['required', 'array', 'size:1'],
             'goalkeeper.*' => ['integer', 'exists:voting_category_candidates,id'],
-        ];
-    }
-
-    public function messages(): array
-    {
-        return [
-            'attack.size'     => __('Attack line requires exactly :size players.'),
-            'midfield.size'   => __('Midfield line requires exactly :size players.'),
-            'defense.size'    => __('Defense line requires exactly :size players.'),
-            'goalkeeper.size' => __('Goalkeeper line requires exactly :size players.'),
         ];
     }
 }

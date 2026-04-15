@@ -9,51 +9,52 @@ use App\Modules\Campaigns\Models\Campaign;
 use App\Modules\Voting\Exceptions\VotingException;
 
 /**
- * Validates a TOTS selection payload:
- *   [ 'attack' => [cid,...], 'midfield' => [...], 'defense' => [...], 'goalkeeper' => [...] ]
+ * Validates a voter-chosen TOS selection.
  *
- * Values are voting_category_candidates.id — NOT player ids — so a candidate
- * can only be picked where the admin wired it in.
- *
- * Returns a flat list of selections the SubmitVoteAction can consume.
+ * The VOTER picks any valid formation. We check:
+ *   - exactly 4 keys: attack, midfield, defense, goalkeeper
+ *   - goalkeeper = 1, attack+midfield+defense = 10, each outfield in [2, 6]
+ *     (all enforced via TeamOfSeasonFormation::validate)
+ *   - no duplicate candidate across lines
+ *   - every picked candidate belongs to its declared line in this campaign
  */
 final class ValidateTeamOfSeasonSelectionAction
 {
     /**
-     * @param  array<string, int[]>  $payload  keyed by slot
+     * @param  array<string, int[]>  $payload
      * @return array<int, array{category_id:int, candidate_ids:int[]}>
      */
     public function execute(Campaign $campaign, array $payload): array
     {
-        $formation = TeamOfSeasonFormation::fromCampaign($campaign);
-        if (! $formation) {
-            throw new \App\Modules\Voting\Exceptions\VotingException(__('Campaign is not configured for Team of the Season.'));
-        }
+        $required = ['attack', 'midfield', 'defense', 'goalkeeper'];
 
-        // 1. Reject unknown keys
-        $unknown = array_diff(array_keys($payload), array_keys($formation));
+        $unknown = array_diff(array_keys($payload), $required);
         if ($unknown) {
             throw new VotingException(__('Unexpected keys in selection: :keys', ['keys' => implode(',', $unknown)]));
         }
-
-        // 2. Exact count per slot
-        foreach ($formation as $slot => $expected) {
-            $got = count(array_unique($payload[$slot] ?? []));
-            if ($got !== $expected) {
-                throw new VotingException(__(
-                    'Line :slot requires exactly :n players (got :got).',
-                    ['slot' => __(ucfirst($slot)), 'n' => $expected, 'got' => $got],
-                ));
+        foreach ($required as $slot) {
+            if (! array_key_exists($slot, $payload)) {
+                throw new VotingException(__('Line :slot is missing.', ['slot' => __(ucfirst($slot))]));
             }
         }
 
-        // 3. No duplicate candidate ids across lines
+        $voterFormation = [
+            'attack'     => count(array_unique($payload['attack'])),
+            'midfield'   => count(array_unique($payload['midfield'])),
+            'defense'    => count(array_unique($payload['defense'])),
+            'goalkeeper' => count(array_unique($payload['goalkeeper'])),
+        ];
+        try {
+            TeamOfSeasonFormation::validate($voterFormation);
+        } catch (\DomainException $e) {
+            throw new VotingException($e->getMessage());
+        }
+
         $all = array_merge(...array_values($payload));
         if (count($all) !== count(array_unique($all))) {
             throw new VotingException(__('A player cannot appear in more than one line.'));
         }
 
-        // 4. Every candidate must actually belong to its declared slot in this campaign
         $categories = $campaign->categories()
             ->where('is_active', true)
             ->with(['candidates' => fn ($q) => $q->where('is_active', true)])
@@ -61,17 +62,14 @@ final class ValidateTeamOfSeasonSelectionAction
             ->keyBy('position_slot');
 
         $selections = [];
-        foreach ($formation as $slot => $expected) {
+        foreach ($required as $slot) {
             $cat = $categories[$slot] ?? null;
             if (! $cat) {
                 throw new VotingException(__('Campaign is not configured for Team of the Season.'));
             }
             $valid = $cat->candidates->pluck('id')->all();
-            $invalid = array_diff($payload[$slot], $valid);
-            if ($invalid) {
-                throw new VotingException(__(
-                    'Invalid player(s) for line :slot.', ['slot' => __(ucfirst($slot))],
-                ));
+            if (array_diff($payload[$slot], $valid)) {
+                throw new VotingException(__('Invalid player(s) for line :slot.', ['slot' => __(ucfirst($slot))]));
             }
             $selections[] = [
                 'category_id'   => $cat->id,

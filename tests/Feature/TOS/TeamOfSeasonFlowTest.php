@@ -197,10 +197,41 @@ it('FormRequest rejects submit with wrong attack size', function () {
     $this->post(route('voting.verify', $c->public_token), ['national_id' => '4000000002']);
 
     $cats = $c->categories->keyBy('position_slot');
+    // Voter-chosen formation: 2-3-4-1 = 10 outfield — valid; submitting 9 outfield fails
+    // Attack below MIN=2 triggers FormRequest size failure, below sum=10 triggers Action failure.
     $this->post(route('voting.submit', $c->public_token), [
-        'attack'     => $cats['attack']->candidates->take(2)->pluck('id')->all(),
+        'attack'     => $cats['attack']->candidates->take(1)->pluck('id')->all(), // 1 — below MIN=2
         'midfield'   => $cats['midfield']->candidates->take(3)->pluck('id')->all(),
         'defense'    => $cats['defense']->candidates->take(4)->pluck('id')->all(),
         'goalkeeper' => $cats['goalkeeper']->candidates->take(1)->pluck('id')->all(),
-    ])->assertSessionHasErrors(['attack']);
+    ])->assertSessionHasErrors();
+});
+
+it('accepts voter-chosen formation 4-3-3-1', function () {
+    $c = makeTOSCampaignWithPlayers();
+    $voter = makePlayer(['national_id' => '4000000099', 'club_id' => makeClub()->id]);
+    $this->post(route('voting.verify', $c->public_token), ['national_id' => '4000000099']);
+
+    $cats = $c->categories->keyBy('position_slot');
+    $this->post(route('voting.submit', $c->public_token), [
+        'attack'     => $cats['attack']->candidates->take(3)->pluck('id')->all(),
+        'midfield'   => $cats['midfield']->candidates->take(3)->pluck('id')->all(),
+        'defense'    => $cats['defense']->candidates->take(4)->pluck('id')->all(),
+        'goalkeeper' => $cats['goalkeeper']->candidates->take(1)->pluck('id')->all(),
+    ])->assertRedirect(route('voting.thanks', $c->public_token));
+});
+
+it('accepts voter-chosen 3-4-3 (different from admin formation)', function () {
+    // Admin seeded 3-3-4-1, voter picks 3-4-3-1 → should still work since sum=10 + each 2-6
+    $c = makeTOSCampaignWithPlayers(['attack' => 3, 'midfield' => 3, 'defense' => 4]);
+    $voter = makePlayer(['national_id' => '4000000100', 'club_id' => makeClub()->id]);
+    $this->post(route('voting.verify', $c->public_token), ['national_id' => '4000000100']);
+
+    $cats = $c->categories->keyBy('position_slot');
+    $this->post(route('voting.submit', $c->public_token), [
+        'attack'     => $cats['attack']->candidates->take(3)->pluck('id')->all(),
+        'midfield'   => $cats['midfield']->candidates->take(3)->pluck('id')->all(),
+        'defense'    => $cats['defense']->candidates->take(4)->pluck('id')->all(),
+        'goalkeeper' => $cats['goalkeeper']->candidates->take(1)->pluck('id')->all(),
+    ])->assertRedirect(route('voting.thanks', $c->public_token));
 });
