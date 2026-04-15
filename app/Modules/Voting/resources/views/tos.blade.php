@@ -28,19 +28,19 @@
         .preset-btn.active { background: #059669; color: white; border-color: #059669; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900">
+<body class="bg-ink-50 text-ink-900">
 <div class="max-w-7xl mx-auto px-4 py-8 space-y-6">
 
-    <section class="rounded-3xl bg-gradient-to-{{ $dir === 'rtl' ? 'l' : 'r' }} from-slate-950 via-slate-900 to-emerald-800 text-white p-8 md:p-10 shadow-2xl">
-        <div class="text-emerald-300 text-sm font-semibold">{{ __('Team of the Season') }}</div>
+    <section class="rounded-3xl bg-gradient-to-{{ $dir === 'rtl' ? 'l' : 'r' }} from-ink-950 via-ink-900 to-brand-800 text-white p-8 md:p-10 shadow-2xl">
+        <div class="text-brand-300 text-sm font-semibold">{{ __('Team of the Season') }}</div>
         <h1 class="text-3xl md:text-4xl font-bold mt-2">{{ $campaign->localized('title') }}</h1>
         @if($campaign->localized('description'))
-            <p class="text-slate-200 mt-3 leading-7">{{ $campaign->localized('description') }}</p>
+            <p class="text-ink-200 mt-3 leading-7">{{ $campaign->localized('description') }}</p>
         @endif
     </section>
 
     @isset($voter)
-        <div class="rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 text-sm flex items-center gap-2">
+        <div class="rounded-2xl bg-brand-50 border border-brand-200 text-brand-800 px-4 py-3 text-sm flex items-center gap-2">
             <span>✓</span>
             <span>{{ __('Verified as') }} {{ $voter['method'] === 'national_id' ? __('National ID') : __('Mobile') }}: <strong>{{ $voter['masked'] }}</strong></span>
         </div>
@@ -53,7 +53,7 @@
     @endif
 
     {{-- STEP 1: Voter picks formation --}}
-    <section class="rounded-3xl border-2 border-emerald-200 bg-white p-6 shadow-sm">
+    <section class="rounded-3xl border-2 border-brand-200 bg-white p-6 shadow-sm">
         <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
             <div>
                 <h2 class="text-xl font-bold">{{ __('1. Choose your formation') }}</h2>
@@ -61,34 +61,34 @@
             </div>
             <div class="text-sm">
                 <span class="text-gray-500">{{ __('Current') }}:</span>
-                <span id="formationLabel" class="font-bold text-emerald-700 text-lg">
+                <span id="formationLabel" class="font-bold text-brand-700 text-lg">
                     {{ $defaultFormation['defense'] }}-{{ $defaultFormation['midfield'] }}-{{ $defaultFormation['attack'] }}
                 </span>
             </div>
         </div>
 
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-            <div class="rounded-2xl bg-slate-50 p-4 text-center">
+            <div class="rounded-2xl bg-ink-50 p-4 text-center">
                 <label class="text-xs text-gray-600 block mb-2">{{ __('Attack') }}</label>
                 <input type="number" id="fAttack" value="{{ $defaultFormation['attack'] }}"
                        min="{{ F::MIN_LINE }}" max="{{ F::MAX_LINE }}"
-                       class="w-full text-center text-3xl font-bold text-emerald-600 rounded-xl border border-emerald-300 px-2 py-2">
+                       class="w-full text-center text-3xl font-bold text-brand-600 rounded-xl border border-brand-300 px-2 py-2">
             </div>
-            <div class="rounded-2xl bg-slate-50 p-4 text-center">
+            <div class="rounded-2xl bg-ink-50 p-4 text-center">
                 <label class="text-xs text-gray-600 block mb-2">{{ __('Midfield') }}</label>
                 <input type="number" id="fMidfield" value="{{ $defaultFormation['midfield'] }}"
                        min="{{ F::MIN_LINE }}" max="{{ F::MAX_LINE }}"
-                       class="w-full text-center text-3xl font-bold text-emerald-600 rounded-xl border border-emerald-300 px-2 py-2">
+                       class="w-full text-center text-3xl font-bold text-brand-600 rounded-xl border border-brand-300 px-2 py-2">
             </div>
-            <div class="rounded-2xl bg-slate-50 p-4 text-center">
+            <div class="rounded-2xl bg-ink-50 p-4 text-center">
                 <label class="text-xs text-gray-600 block mb-2">{{ __('Defense') }}</label>
                 <input type="number" id="fDefense" value="{{ $defaultFormation['defense'] }}"
                        min="{{ F::MIN_LINE }}" max="{{ F::MAX_LINE }}"
-                       class="w-full text-center text-3xl font-bold text-emerald-600 rounded-xl border border-emerald-300 px-2 py-2">
+                       class="w-full text-center text-3xl font-bold text-brand-600 rounded-xl border border-brand-300 px-2 py-2">
             </div>
-            <div class="rounded-2xl bg-slate-50 p-4 text-center opacity-60">
+            <div class="rounded-2xl bg-ink-50 p-4 text-center opacity-60">
                 <label class="text-xs text-gray-600 block mb-2">{{ __('Goalkeeper') }}</label>
-                <div class="text-3xl font-bold text-emerald-600 py-2">1</div>
+                <div class="text-3xl font-bold text-brand-600 py-2">1</div>
                 <div class="text-xs text-gray-400">{{ __('Fixed') }}</div>
             </div>
         </div>
@@ -116,7 +116,7 @@
                     <div>
                         <div class="text-center text-white mb-3 font-semibold">
                             {{ __(ucfirst($slot)) }}
-                            <span class="text-emerald-300">(<span class="line-counter-{{ $slot }}">0</span>/<span class="line-target-{{ $slot }}">{{ $defaultFormation[$slot] }}</span>)</span>
+                            <span class="text-brand-300">(<span class="line-counter-{{ $slot }}">0</span>/<span class="line-target-{{ $slot }}">{{ $defaultFormation[$slot] }}</span>)</span>
                         </div>
                         <div class="flex flex-wrap justify-center gap-3 md:gap-4" data-slot="{{ $slot }}">
                             @foreach($cat->candidates as $cand)
@@ -128,7 +128,7 @@
                                 ?>
                                 <label class="candidate block w-36 rounded-2xl bg-white p-3 text-center border-2 border-transparent">
                                     <input type="checkbox" class="hidden cand-input" data-slot="{{ $slot }}" value="{{ $cand->id }}">
-                                    <div class="w-16 h-16 mx-auto rounded-full bg-slate-100 overflow-hidden mb-2 flex items-center justify-center text-2xl">
+                                    <div class="w-16 h-16 mx-auto rounded-full bg-ink-100 overflow-hidden mb-2 flex items-center justify-center text-2xl">
                                         @if($photo)
                                             <img src="{{ \Illuminate\Support\Facades\Storage::url($photo) }}" class="w-full h-full object-cover" alt="">
                                         @else
@@ -151,7 +151,7 @@
     <div class="sticky bottom-0 bg-white border-t border-gray-200 p-4 rounded-t-3xl shadow-lg flex items-center justify-between gap-4">
         <div id="summary" class="text-sm text-gray-600">{{ __('Set your formation first, then pick players.') }}</div>
         <button type="button" id="submitBtn" disabled
-                class="rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 font-semibold disabled:bg-slate-300 disabled:cursor-not-allowed disabled:hover:bg-slate-300">
+                class="rounded-2xl bg-brand-600 hover:bg-brand-700 text-white px-8 py-3 font-semibold disabled:bg-ink-300 disabled:cursor-not-allowed disabled:hover:bg-ink-300">
             {{ __('Submit my Team of the Season') }}
         </button>
     </div>
@@ -200,11 +200,11 @@
         });
 
         if (validFormation(f)) {
-            statusEl.innerHTML = `<span class="text-emerald-700 font-semibold">✓ {{ __('Valid formation') }}: ${f.defense}-${f.midfield}-${f.attack}</span>`;
+            statusEl.innerHTML = `<span class="text-brand-700 font-semibold">✓ {{ __('Valid formation') }}: ${f.defense}-${f.midfield}-${f.attack}</span>`;
             playersSection.classList.remove('hidden');
         } else {
             const sum = f.attack + f.midfield + f.defense;
-            statusEl.innerHTML = `<span class="text-rose-600 font-semibold">✗ {{ __('Outfield sum must equal') }} ${TARGET} ({{ __('currently') }} ${sum})</span>`;
+            statusEl.innerHTML = `<span class="text-danger-600 font-semibold">✗ {{ __('Outfield sum must equal') }} ${TARGET} ({{ __('currently') }} ${sum})</span>`;
             playersSection.classList.add('hidden');
         }
 

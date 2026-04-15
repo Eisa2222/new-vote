@@ -11,13 +11,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>body { font-family: '{{ $locale === 'ar' ? 'Tajawal' : 'Inter' }}', system-ui, sans-serif; }</style>
 </head>
-<body class="bg-slate-50 text-slate-900">
+<body class="bg-ink-50 text-ink-900">
 <div class="max-w-5xl mx-auto px-4 py-8 space-y-6">
 
-    <section class="rounded-3xl bg-gradient-to-{{ $dir === 'rtl' ? 'l' : 'r' }} from-slate-950 via-slate-900 to-emerald-800 text-white p-8 md:p-10 shadow-2xl text-center">
-        <div class="text-emerald-300 text-sm font-semibold">{{ __('Official Results') }}</div>
+    <section class="rounded-3xl bg-gradient-to-{{ $dir === 'rtl' ? 'l' : 'r' }} from-ink-950 via-ink-900 to-brand-800 text-white p-8 md:p-10 shadow-2xl text-center">
+        <div class="text-brand-300 text-sm font-semibold">{{ __('Official Results') }}</div>
         <h1 class="text-3xl md:text-4xl font-bold mt-2">{{ $campaign->localized('title') }}</h1>
-        <p class="text-slate-300 mt-3">
+        <p class="text-ink-300 mt-3">
             {{ __('Total votes') }}: <strong>{{ number_format($result->total_votes) }}</strong> ·
             {{ __('Announced at') }} {{ $result->announced_at?->format('Y-m-d H:i') }}
         </p>
@@ -35,7 +35,7 @@
                               ?? $item->candidate->club?->localized('name');
                         $club  = $item->candidate->player?->club?->localized('name');
                     ?>
-                    <div class="rounded-2xl border p-4 {{ $item->is_winner ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200' }}">
+                    <div class="rounded-2xl border p-4 {{ $item->is_winner ? 'border-brand-500 bg-brand-50' : 'border-gray-200' }}">
                         <div class="flex items-center justify-between gap-4">
                             <div class="flex items-center gap-3 min-w-0">
                                 <span class="text-lg font-bold text-slate-400 w-8">#{{ $item->rank }}</span>
@@ -44,7 +44,7 @@
                                     @if($club) <div class="text-xs text-gray-500 truncate">{{ $club }}</div> @endif
                                 </div>
                                 @if($item->is_winner)
-                                    <span class="ms-2 px-2 py-0.5 rounded-full text-xs bg-emerald-600 text-white">★ {{ __('Winner') }}</span>
+                                    <span class="ms-2 px-2 py-0.5 rounded-full text-xs bg-brand-600 text-white">★ {{ __('Winner') }}</span>
                                 @endif
                             </div>
                             <div class="text-right whitespace-nowrap">
@@ -53,7 +53,7 @@
                             </div>
                         </div>
                         <div class="mt-2 w-full h-1.5 rounded-full bg-gray-100 overflow-hidden">
-                            <div class="h-full {{ $item->is_winner ? 'bg-emerald-500' : 'bg-slate-400' }}"
+                            <div class="h-full {{ $item->is_winner ? 'bg-brand-500' : 'bg-slate-400' }}"
                                  style="width: {{ $item->vote_percentage }}%"></div>
                         </div>
                     </div>

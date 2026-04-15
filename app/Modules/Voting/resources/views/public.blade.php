@@ -18,28 +18,28 @@
         .candidate.selected .dot { border-color: #059669; background: #059669; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900">
+<body class="bg-ink-50 text-ink-900">
 <div class="max-w-7xl mx-auto px-4 py-8 space-y-8">
 
-    <section class="rounded-3xl bg-gradient-to-{{ $dir === 'rtl' ? 'l' : 'r' }} from-slate-950 via-slate-900 to-emerald-800 text-white p-8 md:p-10 shadow-2xl">
+    <section class="rounded-3xl bg-gradient-to-{{ $dir === 'rtl' ? 'l' : 'r' }} from-ink-950 via-ink-900 to-brand-800 text-white p-8 md:p-10 shadow-2xl">
         <div class="grid md:grid-cols-2 gap-8 items-center">
             <div>
-                <div class="text-emerald-300 text-sm font-semibold">{{ __('Public voting campaign') }}</div>
+                <div class="text-brand-300 text-sm font-semibold">{{ __('Public voting campaign') }}</div>
                 <h1 class="text-3xl md:text-5xl font-bold mt-3 leading-tight">{{ $campaign->localized('title') }}</h1>
                 @if($campaign->localized('description'))
-                    <p class="text-slate-200 mt-4 leading-8">{{ $campaign->localized('description') }}</p>
+                    <p class="text-ink-200 mt-4 leading-8">{{ $campaign->localized('description') }}</p>
                 @endif
             </div>
             <div class="grid grid-cols-2 gap-4">
                 <div class="rounded-2xl bg-white/10 p-5">
-                    <div class="text-sm text-slate-300">{{ __('Time remaining') }}</div>
+                    <div class="text-sm text-ink-300">{{ __('Time remaining') }}</div>
                     <div class="text-2xl font-bold mt-2">{{ $campaign->end_at->diffForHumans(null, true) }}</div>
                 </div>
                 <div class="rounded-2xl bg-white/10 p-5">
-                    <div class="text-sm text-slate-300">{{ __('Voters') }}</div>
+                    <div class="text-sm text-ink-300">{{ __('Voters') }}</div>
                     <div class="text-2xl font-bold mt-2">
                         {{ number_format($campaign->votes()->count()) }}
-                        @if($campaign->max_voters)<span class="text-sm text-slate-300">/ {{ number_format($campaign->max_voters) }}</span>@endif
+                        @if($campaign->max_voters)<span class="text-sm text-ink-300">/ {{ number_format($campaign->max_voters) }}</span>@endif
                     </div>
                 </div>
             </div>
@@ -53,7 +53,7 @@
     @endif
 
     @isset($voter)
-        <div class="rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 text-sm flex items-center gap-2">
+        <div class="rounded-2xl bg-brand-50 border border-brand-200 text-brand-800 px-4 py-3 text-sm flex items-center gap-2">
             <span>✓</span>
             <span>{{ __('Verified as') }} {{ $voter['method'] === 'national_id' ? __('National ID') : __('Mobile') }}: <strong>{{ $voter['masked'] }}</strong></span>
         </div>
@@ -91,7 +91,7 @@
                             $photo = $candidate->player?->photo_path ?? $candidate->club?->logo_path;
                             $pos   = $candidate->player?->position?->label();
                         ?>
-                        <label class="candidate rounded-3xl border border-gray-200 p-5 bg-white hover:border-emerald-400 hover:shadow-md transition block">
+                        <label class="candidate rounded-3xl border border-gray-200 p-5 bg-white hover:border-brand-400 hover:shadow-md transition block">
                             <input type="checkbox"
                                    name="selections[{{ $ci }}][candidate_ids][]"
                                    value="{{ $candidate->id }}"
@@ -101,7 +101,7 @@
                                     <img src="{{ \Illuminate\Support\Facades\Storage::url($photo) }}"
                                          class="w-20 h-20 rounded-2xl object-cover" alt="">
                                 @else
-                                    <div class="w-20 h-20 rounded-2xl bg-slate-100 flex items-center justify-center text-3xl">
+                                    <div class="w-20 h-20 rounded-2xl bg-ink-100 flex items-center justify-center text-3xl">
                                         {{ $candidate->player ? '🧍' : '🏟️' }}
                                     </div>
                                 @endif
@@ -132,7 +132,7 @@
                     <span id="globalProgress">0</span> / {{ $campaign->categories->sum('required_picks') }} {{ __('picks complete') }}
                 </div>
                 <button type="submit" id="submitBtn" disabled
-                        class="rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 font-semibold disabled:bg-slate-300 disabled:cursor-not-allowed disabled:hover:bg-slate-300">
+                        class="rounded-2xl bg-brand-600 hover:bg-brand-700 text-white px-8 py-3 font-semibold disabled:bg-ink-300 disabled:cursor-not-allowed disabled:hover:bg-ink-300">
                     {{ __('Submit My Vote') }}
                 </button>
             </div>
