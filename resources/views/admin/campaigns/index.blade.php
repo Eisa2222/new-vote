@@ -85,8 +85,12 @@
 
             <div class="mt-6 flex flex-wrap gap-2">
                 @if($campaign->status->value === 'draft')
+                    <a href="/admin/campaigns/{{ $campaign->id }}/edit"
+                       class="rounded-2xl border-2 border-amber-500 text-amber-700 hover:bg-amber-50 px-4 py-2.5 font-semibold">
+                        ✏️ {{ __('Edit') }}
+                    </a>
                     <form method="post" action="/admin/campaigns/{{ $campaign->id }}/publish">@csrf
-                        <button class="rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 font-semibold">
+                        <button class="rounded-2xl bg-brand-600 hover:bg-brand-700 text-white px-4 py-2.5 font-semibold">
                             🚀 {{ __('Publish') }}
                         </button>
                     </form>

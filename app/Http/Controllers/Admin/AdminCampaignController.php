@@ -91,6 +91,45 @@ final class AdminCampaignController extends Controller
         return view('admin.campaigns.show', compact('campaign'));
     }
 
+    public function edit(Campaign $campaign): View
+    {
+        $this->authorize('update', $campaign);
+        abort_unless(
+            $campaign->status === CampaignStatus::Draft,
+            403,
+            __('Only draft campaigns can be edited.'),
+        );
+        return view('admin.campaigns.edit', [
+            'campaign' => $campaign,
+            'types'    => CampaignType::cases(),
+        ]);
+    }
+
+    public function update(Request $request, Campaign $campaign): RedirectResponse
+    {
+        $this->authorize('update', $campaign);
+        abort_unless(
+            $campaign->status === CampaignStatus::Draft,
+            403,
+            __('Only draft campaigns can be edited.'),
+        );
+
+        $data = $request->validate([
+            'title_ar'       => ['required', 'string', 'max:180'],
+            'title_en'       => ['required', 'string', 'max:180'],
+            'description_ar' => ['nullable', 'string'],
+            'description_en' => ['nullable', 'string'],
+            'type'           => ['required', 'in:individual_award,team_award,team_of_the_season'],
+            'start_at'       => ['required', 'date'],
+            'end_at'         => ['required', 'date', 'after:start_at'],
+            'max_voters'     => ['nullable', 'integer', 'min:1'],
+        ]);
+
+        $campaign->update($data);
+        return redirect('/admin/campaigns/'.$campaign->id)
+            ->with('success', __('Campaign updated.'));
+    }
+
     public function publish(Campaign $campaign, PublishVotingCampaignAction $a): RedirectResponse
     {
         $this->authorize('publish', $campaign);

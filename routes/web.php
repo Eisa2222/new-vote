@@ -39,6 +39,8 @@ Route::middleware(['web', 'auth'])->prefix('admin')->group(function () {
     Route::get('campaigns/create',                [AdminCampaignController::class, 'create']);
     Route::post('campaigns',                      [AdminCampaignController::class, 'store']);
     Route::get('campaigns/{campaign}',            [AdminCampaignController::class, 'show']);
+    Route::get('campaigns/{campaign}/edit',       [AdminCampaignController::class, 'edit']);
+    Route::put('campaigns/{campaign}',            [AdminCampaignController::class, 'update']);
     Route::get('campaigns/{campaign}/stats',      [AdminCampaignController::class, 'stats']);
     Route::post('campaigns/{campaign}/publish',   [AdminCampaignController::class, 'publish']);
     Route::post('campaigns/{campaign}/activate',  [AdminCampaignController::class, 'activate']);

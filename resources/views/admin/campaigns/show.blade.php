@@ -40,12 +40,18 @@
                         </p>
                     </div>
                 </div>
-                <form method="post" action="/admin/campaigns/{{ $campaign->id }}/publish" class="flex-shrink-0">
-                    @csrf
-                    <button class="rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 font-semibold text-lg shadow-md">
-                        🚀 {{ __('Publish & Activate') }}
-                    </button>
-                </form>
+                <div class="flex gap-2 flex-shrink-0 flex-wrap">
+                    <a href="/admin/campaigns/{{ $campaign->id }}/edit"
+                       class="rounded-2xl border-2 border-amber-500 text-amber-700 hover:bg-amber-100 px-6 py-3 font-semibold">
+                        ✏️ {{ __('Edit') }}
+                    </a>
+                    <form method="post" action="/admin/campaigns/{{ $campaign->id }}/publish">
+                        @csrf
+                        <button class="rounded-2xl bg-brand-600 hover:bg-brand-700 text-white px-8 py-3 font-semibold text-lg shadow-brand">
+                            🚀 {{ __('Publish & Activate') }}
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     @endif
