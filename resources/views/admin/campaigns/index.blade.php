@@ -84,8 +84,24 @@
             </div>
 
             <div class="mt-6 flex flex-wrap gap-2">
-                <a href="{{ url('/vote/'.$campaign->public_token) }}" target="_blank"
-                   class="rounded-2xl border px-4 py-2.5 hover:bg-slate-50">{{ __('Public link') }}</a>
+                @if($campaign->status->value === 'draft')
+                    <form method="post" action="/admin/campaigns/{{ $campaign->id }}/publish">@csrf
+                        <button class="rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 font-semibold">
+                            🚀 {{ __('Publish') }}
+                        </button>
+                    </form>
+                @endif
+                @if($campaign->status->value === 'published')
+                    <form method="post" action="/admin/campaigns/{{ $campaign->id }}/activate">@csrf
+                        <button class="rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 font-semibold">
+                            ⚡ {{ __('Activate') }}
+                        </button>
+                    </form>
+                @endif
+                @if(in_array($campaign->status->value, ['active','published']))
+                    <a href="{{ url('/vote/'.$campaign->public_token) }}" target="_blank"
+                       class="rounded-2xl border px-4 py-2.5 hover:bg-slate-50">{{ __('Public link') }}</a>
+                @endif
                 <a href="/admin/campaigns/{{ $campaign->id }}"
                    class="rounded-2xl bg-slate-900 text-white px-4 py-2.5">{{ __('Manage') }}</a>
             </div>

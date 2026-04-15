@@ -26,19 +26,63 @@
                 <span class="text-sm text-slate-500">{{ $campaign->type->value }}</span>
             </div>
         </div>
-        <div class="flex gap-2">
-            @if(in_array($campaign->status->value, ['draft']))
-                <form method="post" action="/admin/campaigns/{{ $campaign->id }}/publish">@csrf
-                    <button class="btn-primary">{{ __('Publish') }}</button>
-                </form>
-            @endif
-            @if(in_array($campaign->status->value, ['active','published']))
-                <form method="post" action="/admin/campaigns/{{ $campaign->id }}/close">@csrf
-                    <button class="text-rose-600 border border-rose-300 hover:bg-rose-50 px-4 py-2 rounded-lg">{{ __('Close') }}</button>
-                </form>
-            @endif
-        </div>
     </div>
+
+    @if($campaign->status->value === 'draft')
+        <div class="rounded-3xl bg-gradient-to-r from-amber-50 to-emerald-50 border-2 border-amber-300 p-6 mb-6 shadow-sm">
+            <div class="flex items-center justify-between gap-4 flex-wrap">
+                <div class="flex items-start gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center text-2xl flex-shrink-0">⚠️</div>
+                    <div>
+                        <h3 class="font-bold text-amber-900 text-lg">{{ __('This campaign is a draft') }}</h3>
+                        <p class="text-sm text-amber-800 mt-1">
+                            {{ __('Publish the campaign to activate the public voting link. Voters cannot access /vote/{token} until you publish.') }}
+                        </p>
+                    </div>
+                </div>
+                <form method="post" action="/admin/campaigns/{{ $campaign->id }}/publish" class="flex-shrink-0">
+                    @csrf
+                    <button class="rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 font-semibold text-lg shadow-md">
+                        🚀 {{ __('Publish & Activate') }}
+                    </button>
+                </form>
+            </div>
+        </div>
+    @endif
+
+    @if($campaign->status->value === 'published')
+        <div class="rounded-3xl bg-blue-50 border border-blue-200 p-5 mb-6 flex items-center justify-between gap-4 flex-wrap">
+            <div class="flex items-center gap-3">
+                <span class="text-2xl">⏰</span>
+                <div>
+                    <div class="font-semibold text-blue-900">{{ __('Published — waiting for start time') }}</div>
+                    <div class="text-sm text-blue-700">{{ __('Start at') }}: {{ $campaign->start_at->format('Y-m-d H:i') }}</div>
+                </div>
+            </div>
+            <form method="post" action="/admin/campaigns/{{ $campaign->id }}/activate">
+                @csrf
+                <button class="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 font-semibold">
+                    ⚡ {{ __('Activate now') }}
+                </button>
+            </form>
+        </div>
+    @endif
+
+    @if(in_array($campaign->status->value, ['active','published']))
+        <div class="flex gap-2 mb-6">
+            <form method="post" action="/admin/campaigns/{{ $campaign->id }}/close">@csrf
+                <button class="rounded-xl text-rose-700 border border-rose-300 hover:bg-rose-50 px-4 py-2 font-medium">
+                    🛑 {{ __('Close campaign') }}
+                </button>
+            </form>
+            <form method="post" action="/admin/campaigns/{{ $campaign->id }}/archive">@csrf
+                <button class="rounded-xl text-slate-600 border border-slate-300 hover:bg-slate-50 px-4 py-2 font-medium"
+                        onclick="return confirm('{{ __('Archive this campaign?') }}')">
+                    📁 {{ __('Archive') }}
+                </button>
+            </form>
+        </div>
+    @endif
 
     <div class="grid grid-cols-4 gap-4 mb-6">
         <div class="bg-white rounded-2xl shadow p-4">
