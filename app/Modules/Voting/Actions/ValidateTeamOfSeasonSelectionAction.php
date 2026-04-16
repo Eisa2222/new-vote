@@ -9,14 +9,8 @@ use App\Modules\Campaigns\Models\Campaign;
 use App\Modules\Voting\Exceptions\VotingException;
 
 /**
- * Validates a voter-chosen TOS selection.
- *
- * The VOTER picks any valid formation. We check:
- *   - exactly 4 keys: attack, midfield, defense, goalkeeper
- *   - goalkeeper = 1, attack+midfield+defense = 10, each outfield in [2, 6]
- *     (all enforced via TeamOfSeasonFormation::validate)
- *   - no duplicate candidate across lines
- *   - every picked candidate belongs to its declared line in this campaign
+ * Validates a voter submission against the ADMIN-set formation stored on the
+ * campaign's categories. Voter must match the formation exactly.
  */
 final class ValidateTeamOfSeasonSelectionAction
 {
@@ -26,28 +20,24 @@ final class ValidateTeamOfSeasonSelectionAction
      */
     public function execute(Campaign $campaign, array $payload): array
     {
-        $required = ['attack', 'midfield', 'defense', 'goalkeeper'];
+        $formation = TeamOfSeasonFormation::fromCampaign($campaign);
+        if (! $formation) {
+            throw new VotingException(__('Campaign is not configured for Team of the Season.'));
+        }
 
-        $unknown = array_diff(array_keys($payload), $required);
+        $unknown = array_diff(array_keys($payload), array_keys($formation));
         if ($unknown) {
             throw new VotingException(__('Unexpected keys in selection: :keys', ['keys' => implode(',', $unknown)]));
         }
-        foreach ($required as $slot) {
-            if (! array_key_exists($slot, $payload)) {
-                throw new VotingException(__('Line :slot is missing.', ['slot' => __(ucfirst($slot))]));
-            }
-        }
 
-        $voterFormation = [
-            'attack'     => count(array_unique($payload['attack'])),
-            'midfield'   => count(array_unique($payload['midfield'])),
-            'defense'    => count(array_unique($payload['defense'])),
-            'goalkeeper' => count(array_unique($payload['goalkeeper'])),
-        ];
-        try {
-            TeamOfSeasonFormation::validate($voterFormation);
-        } catch (\DomainException $e) {
-            throw new VotingException($e->getMessage());
+        foreach ($formation as $slot => $expected) {
+            $got = count(array_unique($payload[$slot] ?? []));
+            if ($got !== $expected) {
+                throw new VotingException(__(
+                    'Line :slot requires exactly :n players (got :got).',
+                    ['slot' => __(ucfirst($slot)), 'n' => $expected, 'got' => $got],
+                ));
+            }
         }
 
         $all = array_merge(...array_values($payload));
@@ -62,7 +52,7 @@ final class ValidateTeamOfSeasonSelectionAction
             ->keyBy('position_slot');
 
         $selections = [];
-        foreach ($required as $slot) {
+        foreach ($formation as $slot => $expected) {
             $cat = $categories[$slot] ?? null;
             if (! $cat) {
                 throw new VotingException(__('Campaign is not configured for Team of the Season.'));
