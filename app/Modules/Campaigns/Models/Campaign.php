@@ -19,7 +19,7 @@ final class Campaign extends Model
 
     protected $fillable = [
         'title_ar', 'title_en', 'description_ar', 'description_en',
-        'type', 'start_at', 'end_at', 'max_voters', 'public_token',
+        'type', 'league_id', 'start_at', 'end_at', 'max_voters', 'public_token',
         'status', 'results_visibility', 'created_by',
     ];
 
@@ -36,6 +36,11 @@ final class Campaign extends Model
         static::creating(function (self $c) {
             $c->public_token ??= Str::random(32);
         });
+    }
+
+    public function league(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\App\Modules\Leagues\Models\League::class);
     }
 
     public function categories(): HasMany

@@ -37,6 +37,7 @@ final class AdminCampaignController extends Controller
             'types'   => CampaignType::cases(),
             'players' => Player::with('club')->orderBy('name_en')->get(),
             'clubs'   => Club::orderBy('name_en')->get(),
+            'leagues' => \App\Modules\Leagues\Models\League::active()->with('sport')->orderBy('name_en')->get(),
         ]);
     }
 
@@ -50,6 +51,7 @@ final class AdminCampaignController extends Controller
             'description_ar' => ['nullable', 'string'],
             'description_en' => ['nullable', 'string'],
             'type'           => ['required', 'in:individual_award,team_award,team_of_the_season'],
+            'league_id'      => ['nullable', 'integer', 'exists:leagues,id'],
             'start_at'       => ['required', 'date'],
             'end_at'         => ['required', 'date', 'after:start_at'],
             'max_voters'     => ['nullable', 'integer', 'min:1'],

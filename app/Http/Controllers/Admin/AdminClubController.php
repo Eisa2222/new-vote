@@ -34,28 +34,42 @@ final class AdminClubController extends Controller
     public function create(): View
     {
         $this->authorize('create', Club::class);
-        return view('admin.clubs.form', ['club' => new Club(), 'sports' => Sport::all()]);
+        return view('admin.clubs.form', [
+            'club'    => new Club(),
+            'sports'  => Sport::all(),
+            'leagues' => \App\Modules\Leagues\Models\League::with('sport')->orderBy('name_en')->get(),
+        ]);
     }
 
     public function store(StoreClubRequest $r, CreateClubAction $a): RedirectResponse
     {
         $data = $r->validated();
-        $a->execute(\Illuminate\Support\Arr::except($data, ['logo', 'sport_ids']),
+        $club = $a->execute(\Illuminate\Support\Arr::except($data, ['logo', 'sport_ids', 'league_ids']),
                     $r->file('logo'), $data['sport_ids'] ?? []);
+        if ($r->has('league_ids')) {
+            $club->leagues()->sync($r->input('league_ids', []));
+        }
         return redirect('/admin/clubs')->with('success', __('Club created.'));
     }
 
     public function edit(Club $club): View
     {
         $this->authorize('update', $club);
-        return view('admin.clubs.form', ['club' => $club->load('sports'), 'sports' => Sport::all()]);
+        return view('admin.clubs.form', [
+            'club'    => $club->load('sports', 'leagues'),
+            'sports'  => Sport::all(),
+            'leagues' => \App\Modules\Leagues\Models\League::with('sport')->orderBy('name_en')->get(),
+        ]);
     }
 
     public function update(UpdateClubRequest $r, Club $club, UpdateClubAction $a): RedirectResponse
     {
         $data = $r->validated();
-        $a->execute($club, \Illuminate\Support\Arr::except($data, ['logo', 'sport_ids']),
+        $a->execute($club, \Illuminate\Support\Arr::except($data, ['logo', 'sport_ids', 'league_ids']),
                     $r->file('logo'), $data['sport_ids'] ?? null);
+        if ($r->has('league_ids')) {
+            $club->leagues()->sync($r->input('league_ids', []));
+        }
         return redirect('/admin/clubs')->with('success', __('Club updated.'));
     }
 

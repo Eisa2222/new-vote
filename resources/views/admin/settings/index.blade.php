@@ -17,6 +17,10 @@
                     class="tab-btn pb-3 border-b-2 border-transparent font-semibold text-ink-500 hover:text-ink-900 whitespace-nowrap transition">
                 🏆 {{ __('Sports') }}
             </button>
+            <button type="button" data-tab="leagues"
+                    class="tab-btn pb-3 border-b-2 border-transparent font-semibold text-ink-500 hover:text-ink-900 whitespace-nowrap transition">
+                🏅 {{ __('Leagues') }}
+            </button>
             <button type="button" data-tab="positions"
                     class="tab-btn pb-3 border-b-2 border-transparent font-semibold text-ink-500 hover:text-ink-900 whitespace-nowrap transition">
                 🧍 {{ __('Positions') }}
@@ -147,6 +151,78 @@
                             </td>
                         </tr>
                     @endforeach
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    {{-- LEAGUES --}}
+    <section data-pane="leagues" class="tab-pane hidden space-y-6">
+        <div class="card">
+            <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+                <div>
+                    <h2 class="text-xl font-bold">{{ __('Leagues') }}</h2>
+                    <p class="text-sm text-ink-500 mt-1">
+                        {{ __('A league belongs to one sport and contains many clubs. Clubs can join multiple leagues across sports (e.g., Al-Ittihad in Roshn Football + Basketball).') }}
+                    </p>
+                </div>
+            </div>
+
+            <form method="post" action="/admin/settings/leagues"
+                  class="grid grid-cols-1 md:grid-cols-6 gap-3 mb-6 bg-ink-50 p-4 rounded-xl">
+                @csrf
+                <select name="sport_id" required class="rounded-xl border border-ink-200 px-3 py-2 md:col-span-1">
+                    @foreach($sports as $s)
+                        <option value="{{ $s->id }}">{{ $s->localized('name') }}</option>
+                    @endforeach
+                </select>
+                <input name="name_ar" placeholder="{{ __('Name') }} (AR)" required class="rounded-xl border border-ink-200 px-3 py-2">
+                <input name="name_en" placeholder="{{ __('Name') }} (EN)" required class="rounded-xl border border-ink-200 px-3 py-2">
+                <input name="slug" placeholder="{{ __('Slug (optional)') }}" class="rounded-xl border border-ink-200 px-3 py-2">
+                <select name="status" class="rounded-xl border border-ink-200 px-3 py-2">
+                    <option value="active">{{ __('Active') }}</option>
+                    <option value="inactive">{{ __('Inactive') }}</option>
+                </select>
+                <button class="btn-brand">+ {{ __('Add league') }}</button>
+            </form>
+
+            <table class="w-full text-sm">
+                <thead class="bg-ink-50 text-ink-500 text-xs uppercase">
+                    <tr>
+                        <th class="text-start p-3">{{ __('Name') }}</th>
+                        <th class="text-start p-3">{{ __('Sport') }}</th>
+                        <th class="text-start p-3">{{ __('Clubs') }}</th>
+                        <th class="text-start p-3">{{ __('Campaigns') }}</th>
+                        <th class="text-start p-3">{{ __('Status') }}</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-ink-100">
+                    @forelse($leagues as $l)
+                        <tr class="hover:bg-ink-50">
+                            <td class="p-3">
+                                <div class="font-medium">{{ $l->name_ar }}</div>
+                                <div class="text-xs text-ink-500">{{ $l->name_en }}</div>
+                            </td>
+                            <td class="p-3 text-ink-700">{{ $l->sport?->localized('name') }}</td>
+                            <td class="p-3 text-ink-500">{{ $l->clubs_count }}</td>
+                            <td class="p-3 text-ink-500">{{ $l->campaigns_count }}</td>
+                            <td class="p-3">
+                                <span class="badge badge-{{ $l->status->value }}">{{ $l->status->label() }}</span>
+                            </td>
+                            <td class="p-3 text-end">
+                                <form method="post" action="/admin/settings/leagues/{{ $l->id }}"
+                                      onsubmit="return confirm('{{ __('Delete this league?') }}')">
+                                    @csrf @method('DELETE')
+                                    <button class="text-danger-600 text-xs hover:underline">{{ __('Delete') }}</button>
+                                </form>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="6" class="p-8 text-center text-ink-500">
+                            {{ __('No leagues yet. Add one above.') }}
+                        </td></tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>

@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Modules\Campaigns\Enums\CampaignType;
+use App\Modules\Leagues\Models\League;
 use App\Modules\Players\Enums\PlayerPosition;
 use App\Modules\Shared\Services\SettingsService;
 use App\Modules\Sports\Models\Sport;
@@ -17,23 +18,23 @@ use Illuminate\Validation\Rule;
 
 final class AdminSettingsController extends Controller
 {
-    /** Index showing all tabs. */
     public function index(SettingsService $settings): View
     {
         abort_unless(auth()->user()?->can('users.manage'), 403);
 
         return view('admin.settings.index', [
-            'sports'            => Sport::orderBy('name_en')->get(),
-            'campaignTypes'     => CampaignType::cases(),
-            'positions'         => PlayerPosition::cases(),
-            'committeeMembers'  => \App\Models\User::role('committee')->orderBy('name')->get(),
-            'generalSettings' => [
-                'app_name'             => $settings->get('app_name', 'SFPA Voting'),
-                'contact_email'        => $settings->get('contact_email', 'admin@sfpa.sa'),
-                'default_max_voters'   => $settings->get('default_max_voters', ''),
-                'default_campaign_days'=> $settings->get('default_campaign_days', '7'),
-                'committee_name_ar'    => $settings->get('committee_name_ar', 'لجنة التصويت'),
-                'committee_name_en'    => $settings->get('committee_name_en', 'Voting Committee'),
+            'sports'           => Sport::orderBy('name_en')->get(),
+            'leagues'          => League::with('sport')->withCount('clubs', 'campaigns')->orderBy('name_en')->get(),
+            'campaignTypes'    => CampaignType::cases(),
+            'positions'        => PlayerPosition::cases(),
+            'committeeMembers' => \App\Models\User::role('committee')->orderBy('name')->get(),
+            'generalSettings'  => [
+                'app_name'              => $settings->get('app_name', 'SFPA Voting'),
+                'contact_email'         => $settings->get('contact_email', 'admin@sfpa.sa'),
+                'default_max_voters'    => $settings->get('default_max_voters', ''),
+                'default_campaign_days' => $settings->get('default_campaign_days', '7'),
+                'committee_name_ar'     => $settings->get('committee_name_ar', 'لجنة التصويت'),
+                'committee_name_en'     => $settings->get('committee_name_en', 'Voting Committee'),
             ],
         ]);
     }
@@ -41,7 +42,6 @@ final class AdminSettingsController extends Controller
     public function updateGeneral(Request $request, SettingsService $settings): RedirectResponse
     {
         abort_unless(auth()->user()?->can('users.manage'), 403);
-
         $data = $request->validate([
             'app_name'              => ['required', 'string', 'max:120'],
             'contact_email'         => ['required', 'email'],
@@ -50,7 +50,6 @@ final class AdminSettingsController extends Controller
             'committee_name_ar'     => ['required', 'string', 'max:120'],
             'committee_name_en'     => ['required', 'string', 'max:120'],
         ]);
-
         $settings->setMany($data, 'general');
         return back()->with('success', __('Settings saved.'));
     }
@@ -58,19 +57,16 @@ final class AdminSettingsController extends Controller
     public function storeSport(Request $request): RedirectResponse
     {
         abort_unless(auth()->user()?->can('users.manage'), 403);
-
         $data = $request->validate([
             'slug'    => ['nullable', 'string', 'max:60'],
             'name_ar' => ['required', 'string', 'max:100'],
             'name_en' => ['required', 'string', 'max:100'],
             'status'  => ['required', 'in:active,inactive'],
         ]);
-
         $data['slug'] = ($data['slug'] ?? null) ?: Str::slug($data['name_en']);
         $request->merge(['slug' => $data['slug']])->validate([
             'slug' => [Rule::unique('sports', 'slug')],
         ]);
-
         Sport::create($data);
         return back()->with('success', __('Sport added.'));
     }
@@ -78,27 +74,61 @@ final class AdminSettingsController extends Controller
     public function updateSport(Request $request, Sport $sport): RedirectResponse
     {
         abort_unless(auth()->user()?->can('users.manage'), 403);
-
-        $data = $request->validate([
+        $sport->update($request->validate([
             'name_ar' => ['required', 'string', 'max:100'],
             'name_en' => ['required', 'string', 'max:100'],
             'status'  => ['required', 'in:active,inactive'],
-        ]);
-
-        $sport->update($data);
+        ]));
         return back()->with('success', __('Sport updated.'));
     }
 
     public function destroySport(Sport $sport): RedirectResponse
     {
         abort_unless(auth()->user()?->can('users.manage'), 403);
-
         if ($sport->clubs()->exists()) {
-            return back()->withErrors([
-                'sport' => __('Cannot delete a sport that is linked to clubs.'),
-            ]);
+            return back()->withErrors(['sport' => __('Cannot delete a sport that is linked to clubs.')]);
         }
         $sport->delete();
         return back()->with('success', __('Sport removed.'));
+    }
+
+    // ---- Leagues ----
+
+    public function storeLeague(Request $request): RedirectResponse
+    {
+        abort_unless(auth()->user()?->can('users.manage'), 403);
+        $data = $request->validate([
+            'sport_id' => ['required', 'integer', Rule::exists('sports', 'id')],
+            'name_ar'  => ['required', 'string', 'max:150'],
+            'name_en'  => ['required', 'string', 'max:150'],
+            'slug'     => ['nullable', 'string', 'max:80'],
+            'status'   => ['required', 'in:active,inactive'],
+        ]);
+        $data['slug'] = ($data['slug'] ?? null) ?: Str::slug($data['name_en']);
+        $request->merge(['slug' => $data['slug']])->validate([
+            'slug' => [Rule::unique('leagues', 'slug')],
+        ]);
+        League::create($data);
+        return back()->with('success', __('League added.'));
+    }
+
+    public function destroyLeague(League $league): RedirectResponse
+    {
+        abort_unless(auth()->user()?->can('users.manage'), 403);
+        if ($league->campaigns()->exists()) {
+            return back()->withErrors(['league' => __('Cannot delete a league that has campaigns.')]);
+        }
+        $league->clubs()->detach();
+        $league->delete();
+        return back()->with('success', __('League removed.'));
+    }
+
+    /** JSON endpoint — returns clubs belonging to a league (used by campaign create). */
+    public function leagueClubs(League $league)
+    {
+        abort_unless(auth()->user()?->can('users.manage') || auth()->user()?->can('campaigns.create'), 403);
+        return response()->json([
+            'data' => $league->clubs()->active()->orderBy('name_en')->get(['clubs.id', 'clubs.name_ar', 'clubs.name_en']),
+        ]);
     }
 }

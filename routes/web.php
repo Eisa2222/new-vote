@@ -75,6 +75,9 @@ Route::middleware(['web', 'auth'])->prefix('admin')->group(function () {
     Route::post('settings/sports',                [AdminSettingsController::class, 'storeSport']);
     Route::put('settings/sports/{sport}',         [AdminSettingsController::class, 'updateSport']);
     Route::delete('settings/sports/{sport}',      [AdminSettingsController::class, 'destroySport']);
+    Route::post('settings/leagues',               [AdminSettingsController::class, 'storeLeague']);
+    Route::delete('settings/leagues/{league}',    [AdminSettingsController::class, 'destroyLeague']);
+    Route::get('settings/leagues/{league}/clubs', [AdminSettingsController::class, 'leagueClubs']);
 
     Route::get('users',                  [AdminUserController::class, 'index']);
     Route::get('users/create',           [AdminUserController::class, 'create']);

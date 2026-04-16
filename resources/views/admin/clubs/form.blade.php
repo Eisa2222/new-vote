@@ -49,6 +49,23 @@
             </div>
         </div>
 
+        @if(isset($leagues) && $leagues->count())
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-2">{{ __('Leagues') }}</label>
+                <p class="text-xs text-gray-500 mb-2">{{ __('A club can join multiple leagues across different sports.') }}</p>
+                <div class="flex flex-wrap gap-2">
+                    @foreach($leagues as $league)
+                        <label class="flex items-center gap-2 border rounded-lg px-3 py-1.5">
+                            <input type="checkbox" name="league_ids[]" value="{{ $league->id }}"
+                                   @checked(in_array($league->id, old('league_ids', $club->leagues->pluck('id')->all())))>
+                            <span>{{ $league->localized('name') }}</span>
+                            <span class="text-xs text-gray-400">({{ $league->sport?->localized('name') }})</span>
+                        </label>
+                    @endforeach
+                </div>
+            </div>
+        @endif
+
         <div>
             <label class="block text-sm font-medium text-slate-700 mb-1">{{ __('Status') }}</label>
             <select name="status" class="border rounded-lg px-3 py-2">

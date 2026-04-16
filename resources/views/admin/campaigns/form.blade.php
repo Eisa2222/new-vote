@@ -41,6 +41,20 @@
                     @endforeach
                 </select>
             </div>
+            @isset($leagues)
+            <div>
+                <label class="block text-sm font-medium mb-1">{{ __('League') }} <span class="text-gray-400 text-xs">({{ __('optional') }})</span></label>
+                <select name="league_id" id="leagueSelect" class="w-full rounded-2xl border border-gray-300 px-4 py-3">
+                    <option value="">— {{ __('All clubs') }} —</option>
+                    @foreach($leagues as $league)
+                        <option value="{{ $league->id }}" @selected(old('league_id') == $league->id)>
+                            {{ $league->localized('name') }} ({{ $league->sport?->localized('name') }})
+                        </option>
+                    @endforeach
+                </select>
+                <p class="text-xs text-gray-500 mt-1">{{ __('Select a league to restrict candidates to its clubs.') }}</p>
+            </div>
+            @endisset
             <div>
                 <label class="block text-sm font-medium mb-1">{{ __('Start at') }}</label>
                 <input type="datetime-local" name="start_at" value="{{ old('start_at') }}" required
@@ -85,12 +99,18 @@
 
 <?php
     $playersJson = $players->map(fn($p) => [
-        'id'   => $p->id,
-        'name' => $p->localized('name'),
-        'club' => $p->club?->localized('name'),
+        'id'      => $p->id,
+        'name'    => $p->localized('name'),
+        'club'    => $p->club?->localized('name'),
+        'club_id' => $p->club_id,
     ])->values()->toJson(JSON_UNESCAPED_UNICODE);
+
+    $leagueClubsMap = isset($leagues)
+        ? $leagues->mapWithKeys(fn ($l) => [$l->id => $l->clubs->pluck('id')->all()])->toJson()
+        : '{}';
 ?>
 <script id="playersData" type="application/json">{!! $playersJson !!}</script>
+<script id="leagueClubs" type="application/json">{!! $leagueClubsMap !!}</script>
 
 <template id="questionTemplate">
     <div class="question-row rounded-2xl border-2 border-gray-200 p-5 bg-gray-50">
@@ -139,9 +159,18 @@
 
 <script>
 const allPlayers = JSON.parse(document.getElementById('playersData').textContent);
+const leagueClubs = JSON.parse(document.getElementById('leagueClubs').textContent);
 const tpl = document.getElementById('questionTemplate');
 const container = document.getElementById('questionsContainer');
 let qIndex = 0;
+
+function filteredPlayers() {
+    const sel = document.getElementById('leagueSelect');
+    const leagueId = sel ? sel.value : '';
+    if (!leagueId || !leagueClubs[leagueId]) return allPlayers;
+    const allowed = new Set(leagueClubs[leagueId]);
+    return allPlayers.filter(p => allowed.has(p.club_id));
+}
 
 function addQuestion() {
     const i = qIndex++;
@@ -179,7 +208,7 @@ function addQuestion() {
     function showSuggestions(q) {
         const query = q.trim().toLowerCase();
         if (!query) { suggestions.classList.add('hidden'); return; }
-        const matches = allPlayers
+        const matches = filteredPlayers()
             .filter(p => !selected.has(p.id) && (p.name || '').toLowerCase().includes(query))
             .slice(0, 10);
         if (matches.length === 0) { suggestions.classList.add('hidden'); return; }
