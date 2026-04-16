@@ -146,14 +146,28 @@
         </div>
 
         <div class="border-t pt-4">
-            <label class="block text-sm font-bold mb-2">{{ __('Answers (players)') }}</label>
-            <div class="relative">
-                <input type="text" class="answer-search w-full rounded-xl border border-gray-300 px-3 py-2.5"
-                       placeholder="{{ __('Search player by name...') }}" autocomplete="off">
-                <div class="answer-suggestions absolute z-10 w-full mt-1 bg-white border rounded-xl shadow-lg max-h-60 overflow-y-auto hidden"></div>
+            <div class="flex items-center justify-between mb-2 flex-wrap gap-2">
+                <label class="block text-sm font-bold">{{ __('Answers (players)') }}</label>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <input type="text" class="answer-search rounded-xl border border-gray-300 px-3 py-1.5 text-sm w-48"
+                           placeholder="🔍 {{ __('Filter...') }}" autocomplete="off">
+                    <button type="button" class="select-all-btn text-xs text-emerald-700 hover:underline font-medium">
+                        {{ __('Select all') }}
+                    </button>
+                    <button type="button" class="clear-all-btn text-xs text-rose-600 hover:underline font-medium">
+                        {{ __('Clear') }}
+                    </button>
+                </div>
             </div>
-            <div class="answer-chips mt-3 flex flex-wrap gap-2"></div>
-            <p class="text-xs text-gray-400 mt-2 answer-empty">{{ __('No answers added yet.') }}</p>
+            <div class="text-xs text-ink-500 mb-2">
+                <span class="selected-count">0</span> {{ __('selected') }}
+            </div>
+
+            <div class="players-list rounded-xl border border-gray-200 bg-white p-2 max-h-80 overflow-y-auto">
+                {{-- Rows are injected by JS, filtered by league + position --}}
+            </div>
+
+            <p class="text-xs text-gray-400 mt-2 no-match hidden">{{ __('No players match the current filters.') }}</p>
         </div>
     </div>
 </template>
@@ -190,14 +204,50 @@ function addQuestion() {
     row.querySelectorAll('[name="REQUIRED_PICKS"]').forEach(e => e.name = `categories[${i}][required_picks]`);
     row.querySelector('.remove-q').addEventListener('click', () => row.remove());
 
-    const search       = row.querySelector('.answer-search');
-    const suggestions  = row.querySelector('.answer-suggestions');
-    const chips        = row.querySelector('.answer-chips');
-    const emptyHint    = row.querySelector('.answer-empty');
-    const positionSel  = row.querySelector(`[name="categories[${i}][position_slot]"]`);
-    const selected     = new Set();
+    const search        = row.querySelector('.answer-search');
+    const list          = row.querySelector('.players-list');
+    const noMatch       = row.querySelector('.no-match');
+    const countLabel    = row.querySelector('.selected-count');
+    const selectAllBtn  = row.querySelector('.select-all-btn');
+    const clearAllBtn   = row.querySelector('.clear-all-btn');
+    const positionSel   = row.querySelector(`[name="categories[${i}][position_slot]"]`);
+    const selected      = new Set();
 
-    // When position changes, drop already-picked players that no longer match and re-render.
+    function render() {
+        const pos   = positionSel?.value || 'any';
+        const query = (search.value || '').trim().toLowerCase();
+        const pool  = filteredPlayers(pos)
+            .filter(p => !query || (p.name || '').toLowerCase().includes(query));
+
+        list.innerHTML = '';
+        if (pool.length === 0) {
+            noMatch.classList.remove('hidden');
+        } else {
+            noMatch.classList.add('hidden');
+            pool.forEach(p => {
+                const label = document.createElement('label');
+                label.className = 'flex items-center gap-3 rounded-lg p-2 cursor-pointer hover:bg-emerald-50 has-[:checked]:bg-emerald-100 has-[:checked]:border-emerald-400 border border-transparent transition';
+                label.innerHTML = `
+                    <input type="checkbox" name="categories[${i}][player_ids][]" value="${p.id}"
+                           class="player-cb w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                           ${selected.has(p.id) ? 'checked' : ''}>
+                    <div class="flex-1 min-w-0">
+                        <div class="font-medium text-sm truncate">${p.name}</div>
+                        <div class="text-xs text-gray-500 truncate">${p.club || ''}</div>
+                    </div>
+                    <span class="text-xs rounded-full bg-blue-100 text-blue-700 px-2 py-0.5 whitespace-nowrap">${p.position || ''}</span>`;
+                const cb = label.querySelector('.player-cb');
+                cb.addEventListener('change', () => {
+                    if (cb.checked) selected.add(p.id);
+                    else selected.delete(p.id);
+                    countLabel.textContent = selected.size;
+                });
+                list.appendChild(label);
+            });
+        }
+        countLabel.textContent = selected.size;
+    }
+
     positionSel?.addEventListener('change', () => {
         const pos = positionSel.value;
         if (pos && pos !== 'any') {
@@ -207,61 +257,20 @@ function addQuestion() {
             });
         }
         render();
-        search.placeholder = pos && pos !== 'any'
-            ? '{{ __("Search player by name...") }} (' + pos + ')'
-            : '{{ __("Search player by name...") }}';
     });
-
-    function render() {
-        chips.innerHTML = '';
-        selected.forEach(pid => {
-            const p = allPlayers.find(x => x.id === pid);
-            if (!p) return;
-            const chip = document.createElement('span');
-            chip.className = 'inline-flex items-center gap-2 rounded-full bg-emerald-100 text-emerald-800 px-3 py-1.5 text-sm font-medium';
-            chip.innerHTML = `<span>${p.name}${p.club ? ' — <span class="text-emerald-600">'+p.club+'</span>' : ''}</span>
-                              <button type="button" class="text-emerald-700 hover:text-rose-600">✕</button>
-                              <input type="hidden" name="categories[${i}][player_ids][]" value="${p.id}">`;
-            chip.querySelector('button').addEventListener('click', () => { selected.delete(pid); render(); });
-            chips.appendChild(chip);
-        });
-        emptyHint.style.display = selected.size ? 'none' : '';
-    }
-
-    function showSuggestions(q) {
-        const query = q.trim().toLowerCase();
-        if (!query) { suggestions.classList.add('hidden'); return; }
-        const pos = positionSel?.value || 'any';
-        const matches = filteredPlayers(pos)
-            .filter(p => !selected.has(p.id) && (p.name || '').toLowerCase().includes(query))
-            .slice(0, 10);
-        if (matches.length === 0) { suggestions.classList.add('hidden'); return; }
-        suggestions.innerHTML = '';
-        matches.forEach(p => {
-            const item = document.createElement('div');
-            item.className = 'px-3 py-2 hover:bg-emerald-50 cursor-pointer flex justify-between items-center gap-2';
-            item.innerHTML = `<div class="min-w-0">
-                                <div class="font-medium truncate">${p.name}</div>
-                                <div class="text-xs text-gray-500 truncate">${p.club || ''}</div>
-                              </div>
-                              <span class="text-xs rounded-full bg-blue-100 text-blue-700 px-2 py-0.5 whitespace-nowrap">${p.position || ''}</span>`;
-            item.addEventListener('mousedown', (e) => {
-                e.preventDefault();
-                selected.add(p.id);
-                search.value = '';
-                suggestions.classList.add('hidden');
-                render();
-            });
-            suggestions.appendChild(item);
-        });
-        suggestions.classList.remove('hidden');
-    }
-
-    search.addEventListener('input',  () => showSuggestions(search.value));
-    search.addEventListener('focus',  () => showSuggestions(search.value));
-    search.addEventListener('blur',   () => setTimeout(() => suggestions.classList.add('hidden'), 150));
+    search.addEventListener('input', render);
+    selectAllBtn.addEventListener('click', () => {
+        const pos   = positionSel?.value || 'any';
+        const query = (search.value || '').trim().toLowerCase();
+        filteredPlayers(pos)
+            .filter(p => !query || (p.name || '').toLowerCase().includes(query))
+            .forEach(p => selected.add(p.id));
+        render();
+    });
+    clearAllBtn.addEventListener('click', () => { selected.clear(); render(); });
 
     container.appendChild(clone);
+    render();
 }
 
 document.getElementById('addQuestionBtn').addEventListener('click', addQuestion);
