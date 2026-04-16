@@ -120,6 +120,70 @@
                 </p>
             </div>
         @else
+            {{-- Pitch view for TOS campaigns after approval --}}
+            @if($campaign->type?->value === 'team_of_the_season' && in_array($resultStatus, ['approved', 'announced']))
+                <?php
+                    use App\Modules\Campaigns\Domain\TeamOfSeasonFormation as TOSF;
+                    $tosFormation = TOSF::fromCampaign($campaign);
+                    $winnersBySlot = $result->items->where('is_winner', true)->groupBy('position');
+                ?>
+                <div class="mb-6 rounded-3xl overflow-hidden shadow-xl relative"
+                     style="background: linear-gradient(to bottom, #065f46, #064e3b); min-height: 480px;">
+                    <div class="absolute inset-0 opacity-20"
+                         style="background-image: linear-gradient(to right, rgba(255,255,255,.08) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,.08) 1px, transparent 1px); background-size: 40px 40px;"></div>
+
+                    <div class="relative z-10 p-5 md:p-8">
+                        <div class="text-center text-white mb-6">
+                            <div class="text-xs uppercase tracking-wider text-emerald-300">{{ __('Official Lineup') }}</div>
+                            <div class="text-2xl font-bold mt-1">{{ $tosFormation['defense'] }}-{{ $tosFormation['midfield'] }}-{{ $tosFormation['attack'] }}</div>
+                        </div>
+
+                        @foreach($tosFormation as $slot => $n)
+                            <div class="mb-6 last:mb-0">
+                                <div class="text-center text-xs text-emerald-200 mb-3 font-semibold uppercase tracking-wider">
+                                    {{ __(ucfirst($slot)) }} ({{ $winnersBySlot->get($slot, collect())->count() }}/{{ $n }})
+                                </div>
+                                <div class="flex flex-wrap justify-center gap-3">
+                                    @foreach($winnersBySlot->get($slot, collect())->sortBy('rank') as $item)
+                                        <?php
+                                            $p = $item->candidate->player;
+                                            $photo = $p?->photo_path;
+                                        ?>
+                                        <div class="w-32 rounded-2xl bg-white p-3 text-center shadow-lg">
+                                            <div class="w-16 h-16 mx-auto rounded-full bg-slate-100 overflow-hidden mb-2 flex items-center justify-center text-2xl">
+                                                @if($photo)
+                                                    <img src="{{ \Illuminate\Support\Facades\Storage::url($photo) }}" class="w-full h-full object-cover" alt="">
+                                                @else
+                                                    🧍
+                                                @endif
+                                            </div>
+                                            <div class="font-bold text-xs text-gray-900 truncate">{{ $p?->localized('name') }}</div>
+                                            <div class="text-xs text-gray-500 truncate">{{ $p?->club?->localized('name') }}</div>
+                                            <div class="mt-1.5 text-xs text-emerald-700 font-bold">
+                                                {{ $item->votes_count }} · {{ $item->vote_percentage }}%
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                    @for($i = $winnersBySlot->get($slot, collect())->count(); $i < $n; $i++)
+                                        <div class="w-32 rounded-2xl border-2 border-dashed border-white/30 p-3 text-center opacity-40 text-white text-xs py-8">
+                                            {{ __('empty') }}
+                                        </div>
+                                    @endfor
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+                    <h3 class="font-bold text-ink-800">{{ __('Full ranking per line') }}</h3>
+                    <a href="{{ url('/results/'.$campaign->public_token) }}" target="_blank"
+                       class="text-sm text-brand-700 hover:underline">
+                        {{ __('View public page') }} ↗
+                    </a>
+                </div>
+            @endif
+
             @foreach($result->items->groupBy('voting_category_id') as $categoryId => $items)
                 <?php $category = $items->first()->category; ?>
                 <div class="mb-6 last:mb-0">
