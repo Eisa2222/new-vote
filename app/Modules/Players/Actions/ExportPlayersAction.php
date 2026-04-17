@@ -28,6 +28,9 @@ final class ExportPlayersAction
             $out = fopen('php://output', 'w');
             // UTF-8 BOM → Excel treats the file as UTF-8 instead of Windows-1252.
             fwrite($out, "\xEF\xBB\xBF");
+            // Excel-specific hint: force comma as separator even on locales
+            // (e.g. ar-SA, fr-FR) where the system default is semicolon.
+            fwrite($out, "sep=,\r\n");
             fputcsv($out, self::COLUMNS);
 
             Player::with(['club', 'sport'])->orderBy('id')->chunk(500, function ($players) use ($out) {
@@ -60,6 +63,7 @@ final class ExportPlayersAction
         return new StreamedResponse(function () {
             $out = fopen('php://output', 'w');
             fwrite($out, "\xEF\xBB\xBF");
+            fwrite($out, "sep=,\r\n");
             fputcsv($out, self::COLUMNS);
             // One sample row so users see the expected shape.
             fputcsv($out, [

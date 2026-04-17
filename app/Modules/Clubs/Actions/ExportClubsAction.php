@@ -21,6 +21,7 @@ final class ExportClubsAction
         return new StreamedResponse(function () {
             $out = fopen('php://output', 'w');
             fwrite($out, "\xEF\xBB\xBF");
+            fwrite($out, "sep=,\r\n");
             fputcsv($out, self::COLUMNS);
 
             Club::with(['sports', 'leagues'])->orderBy('id')->chunk(500, function ($clubs) use ($out) {
@@ -48,6 +49,7 @@ final class ExportClubsAction
         return new StreamedResponse(function () {
             $out = fopen('php://output', 'w');
             fwrite($out, "\xEF\xBB\xBF");
+            fwrite($out, "sep=,\r\n");
             fputcsv($out, self::COLUMNS);
             fputcsv($out, [
                 'الهلال', 'Al-Hilal', 'HIL', 'active', 'Football', 'Roshn League',

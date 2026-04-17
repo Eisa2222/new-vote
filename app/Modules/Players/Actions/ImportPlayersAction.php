@@ -36,6 +36,13 @@ final class ImportPlayersAction
             rewind($fh);
         }
 
+        // Skip the Excel "sep=," hint line if present.
+        $peek = ftell($fh);
+        $first = fgets($fh);
+        if ($first === false || stripos(ltrim($first), 'sep=') !== 0) {
+            fseek($fh, $peek);
+        }
+
         $header = fgetcsv($fh);
         if (! $header) {
             fclose($fh);

@@ -33,6 +33,13 @@ final class ImportClubsAction
         $bom = fread($fh, 3);
         if ($bom !== "\xEF\xBB\xBF") rewind($fh);
 
+        // Skip optional Excel "sep=," hint line.
+        $peek = ftell($fh);
+        $first = fgets($fh);
+        if ($first === false || stripos(ltrim($first), 'sep=') !== 0) {
+            fseek($fh, $peek);
+        }
+
         $header = fgetcsv($fh);
         if (! $header) {
             fclose($fh);

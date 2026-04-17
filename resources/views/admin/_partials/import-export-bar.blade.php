@@ -2,7 +2,7 @@
     'exportUrl',
     'templateUrl',
     'importUrl',
-    'label',          // e.g. "players" / "clubs"
+    'label',
 ])
 
 <div class="rounded-2xl bg-gradient-to-{{ app()->getLocale() === 'ar' ? 'l' : 'r' }} from-brand-50 to-accent-500/10 border border-brand-200 p-4 flex flex-col md:flex-row md:items-center gap-3 md:gap-4">
@@ -23,18 +23,17 @@
            class="inline-flex items-center gap-1.5 rounded-xl border border-ink-200 bg-white text-ink-700 hover:bg-ink-50 px-3 py-2 text-sm font-semibold">
             📄 {{ __('Template') }}
         </a>
-        <form method="post" action="{{ $importUrl }}" enctype="multipart/form-data" class="inline-flex items-center gap-2">
+
+        {{-- Import: file input is visible, and a separate Import button posts the form.
+             Using a visible file input avoids label+hidden-input JS wiring which was
+             flaky on some browsers — the form now works without any JS at all. --}}
+        <form method="post" action="{{ $importUrl }}" enctype="multipart/form-data"
+              class="inline-flex items-center gap-2 flex-wrap">
             @csrf
-            <label class="inline-flex items-center gap-1.5 rounded-xl border border-brand-500 bg-brand-600 hover:bg-brand-700 text-white px-3 py-2 text-sm font-semibold cursor-pointer">
-                📂 {{ __('Choose file') }}
-                <input type="file" name="file" accept=".csv,text/csv" required
-                       class="hidden"
-                       onchange="this.closest('form').querySelector('[data-import-submit]').disabled = !this.files.length;
-                                this.closest('form').querySelector('[data-file-name]').textContent = this.files[0]?.name || ''">
-            </label>
-            <span data-file-name class="text-xs text-ink-600 max-w-[160px] truncate"></span>
-            <button type="submit" data-import-submit disabled
-                    class="inline-flex items-center gap-1.5 rounded-xl bg-accent-500 hover:bg-accent-600 text-white px-3 py-2 text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
+            <input type="file" name="file" accept=".csv,text/csv" required
+                   class="text-xs text-ink-700 file:rounded-lg file:border-0 file:bg-brand-600 file:text-white file:font-semibold file:px-3 file:py-2 file:cursor-pointer file:hover:bg-brand-700 file:me-2 max-w-[220px]">
+            <button type="submit"
+                    class="inline-flex items-center gap-1.5 rounded-xl bg-accent-500 hover:bg-accent-600 text-white px-3 py-2 text-sm font-semibold">
                 ⬆ {{ __('Import') }}
             </button>
         </form>
