@@ -75,16 +75,15 @@
     <script defer src="https://unpkg.com/alpinejs@3.14.3/dist/cdn.min.js"></script>
     <style>
         [x-cloak] { display: none !important; }
-        .pitch { background:
-            radial-gradient(ellipse at center, rgba(255,255,255,0.07) 0%, transparent 60%),
-            linear-gradient(180deg, #115C42 0%, #0B3D2E 100%);
-        }
-        .pitch-stripe { background-image: repeating-linear-gradient(
-            to bottom, rgba(255,255,255,0.04) 0 40px, transparent 40px 80px); }
-        .pulse-ring { animation: pulseRing 1.2s ease-out 1; }
-        @keyframes pulseRing {
-            0%   { box-shadow: 0 0 0 0 rgba(200,163,101, 0.8); }
-            100% { box-shadow: 0 0 0 20px rgba(200,163,101, 0); }
+        /* Pitch surface — layered green gradient + faint horizontal stripes.
+           Uses inline CSS instead of utility classes so Tailwind's CDN
+           purge never strips it. */
+        .pitch-surface {
+            background-color: #0B3D2E;
+            background-image:
+                repeating-linear-gradient(to bottom, rgba(255,255,255,0.05) 0 48px, transparent 48px 96px),
+                radial-gradient(ellipse at center, rgba(255,255,255,0.08) 0%, transparent 60%),
+                linear-gradient(180deg, #1F7A49 0%, #115C42 55%, #0B3D2E 100%);
         }
     </style>
 </head>
@@ -113,12 +112,12 @@
 
     {{-- PITCH — clickable slots; filled slots show the player, empty show + --}}
     <section class="relative rounded-3xl overflow-hidden shadow-brand border border-brand-900/30">
-        <div class="pitch pitch-stripe relative py-8 md:py-12 px-4">
+        <div class="pitch-surface relative py-8 md:py-12 px-4">
             <div class="absolute inset-0 pointer-events-none">
-                <div class="absolute inset-x-0 top-1/2 h-px bg-white/20"></div>
-                <div class="absolute left-1/2 top-1/2 w-24 h-24 md:w-36 md:h-36 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/20"></div>
-                <div class="absolute inset-x-10 top-2 h-10 border-2 border-b-0 border-white/15 rounded-t-xl"></div>
-                <div class="absolute inset-x-10 bottom-2 h-10 border-2 border-t-0 border-white/15 rounded-b-xl"></div>
+                <div class="absolute inset-x-0 top-1/2 h-px bg-white/30"></div>
+                <div class="absolute left-1/2 top-1/2 w-24 h-24 md:w-36 md:h-36 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white/25"></div>
+                <div class="absolute inset-x-10 top-2 h-10 border-2 border-b-0 border-white/25 rounded-t-xl"></div>
+                <div class="absolute inset-x-10 bottom-2 h-10 border-2 border-t-0 border-white/25 rounded-b-xl"></div>
             </div>
 
             <div class="relative space-y-6 md:space-y-10">

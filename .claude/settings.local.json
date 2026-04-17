@@ -51,7 +51,8 @@
       "Bash(curl -s -o /dev/null -w \"login: %{http_code}\\\\n\" http://127.0.0.1:8000/login)",
       "Bash(curl -s -o /dev/null -w \"admin: %{http_code}\\\\n\" http://127.0.0.1:8000/admin)",
       "Bash(curl -s -o /tmp/login-check.html -w \"status: %{http_code}\\\\ntime: %{time_total}s\\\\nsize: %{size_download}\\\\n\" http://127.0.0.1:8000/login)",
-      "Bash(taskkill //F //IM php.exe)"
+      "Bash(taskkill //F //IM php.exe)",
+      "Bash(curl -s -o /tmp/vote.html -w \"HTTP %{http_code}\\\\n\" http://127.0.0.1:8000/vote/jpgeDNYnSkyLbzSwELz5JSTDrceuxyfK/form)"
     ]
   }
 }
