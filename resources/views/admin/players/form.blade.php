@@ -100,14 +100,20 @@
         </div>
 
         <div class="sticky bottom-0 bg-white pt-4 border-t flex gap-2">
-            <button class="btn-primary">{{ __('Save') }}</button>
+            <button type="submit" class="btn-primary">{{ __('Save') }}</button>
             <a href="/admin/players" class="btn-ghost">{{ __('Cancel') }}</a>
-            @if($player->exists)
-                <form method="post" action="/admin/players/{{ $player->id }}" onsubmit="return confirm('{{ __('Delete this player?') }}')" class="ms-auto">
-                    @csrf @method('DELETE')
-                    <button class="text-rose-600 hover:underline">{{ __('Delete') }}</button>
-                </form>
-            @endif
         </div>
     </form>
+
+    @if($player->exists)
+        {{-- Delete form — MUST be outside the edit form. Nested <form> tags are
+             not allowed in HTML and cause _method inputs to collide, turning an
+             edit submit into a delete. --}}
+        <form method="post" action="/admin/players/{{ $player->id }}"
+              onsubmit="return confirm('{{ __('Delete this player?') }}')"
+              class="max-w-3xl mt-4 flex justify-end">
+            @csrf @method('DELETE')
+            <button type="submit" class="text-rose-600 hover:underline">{{ __('Delete') }}</button>
+        </form>
+    @endif
 @endsection

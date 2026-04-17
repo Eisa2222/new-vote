@@ -79,22 +79,23 @@
                class="rounded-2xl border-2 border-ink-200 hover:bg-ink-50 text-ink-700 px-6 py-3 font-semibold text-base">
                 {{ __('Cancel') }}
             </a>
-            <div class="flex gap-3">
-                @if($club->exists)
-                    <form method="post" action="/admin/clubs/{{ $club->id }}"
-                          onsubmit="return confirm('{{ __('Delete this club?') }}')">
-                        @csrf @method('DELETE')
-                        <button type="submit"
-                                class="rounded-2xl border-2 border-danger-500/50 text-danger-600 hover:bg-danger-500/10 px-6 py-3 font-semibold text-base">
-                            🗑 {{ __('Delete') }}
-                        </button>
-                    </form>
-                @endif
-                <button type="submit"
-                        class="rounded-2xl bg-brand-600 hover:bg-brand-700 text-white px-8 py-3 font-semibold text-base shadow-brand">
-                    💾 {{ __('Save') }}
-                </button>
-            </div>
+            <button type="submit"
+                    class="rounded-2xl bg-brand-600 hover:bg-brand-700 text-white px-8 py-3 font-semibold text-base shadow-brand">
+                💾 {{ __('Save') }}
+            </button>
         </div>
     </form>
+
+    @if($club->exists)
+        {{-- Delete form — MUST be outside the edit form (nested forms break _method). --}}
+        <form method="post" action="/admin/clubs/{{ $club->id }}"
+              onsubmit="return confirm('{{ __('Delete this club?') }}')"
+              class="max-w-3xl mt-4 flex justify-end">
+            @csrf @method('DELETE')
+            <button type="submit"
+                    class="rounded-2xl border-2 border-danger-500/50 text-danger-600 hover:bg-danger-500/10 px-6 py-3 font-semibold text-base">
+                🗑 {{ __('Delete') }}
+            </button>
+        </form>
+    @endif
 @endsection
