@@ -5,7 +5,14 @@
 @section('page_description', __('View and manage all participating clubs'))
 
 @section('content')
-<div class="rounded-3xl border border-gray-200 bg-white p-5 shadow-sm space-y-5">
+@include('admin._partials.import-export-bar', [
+    'exportUrl'   => '/admin/clubs/export',
+    'templateUrl' => '/admin/clubs/export/template',
+    'importUrl'   => '/admin/clubs/import',
+    'label'       => __('clubs'),
+])
+
+<div class="rounded-3xl border border-gray-200 bg-white p-5 shadow-sm space-y-5 mt-4">
     <form method="get" class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div class="flex flex-col md:flex-row gap-3 w-full lg:max-w-3xl">
             <input type="text" name="q" value="{{ request('q') }}" placeholder="{{ __('Search by club name') }}..."

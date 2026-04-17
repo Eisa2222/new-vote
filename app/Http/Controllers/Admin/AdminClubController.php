@@ -6,6 +6,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Modules\Clubs\Actions\CreateClubAction;
+use App\Modules\Clubs\Actions\ExportClubsAction;
+use App\Modules\Clubs\Actions\ImportClubsAction;
 use App\Modules\Clubs\Actions\UpdateClubAction;
 use App\Modules\Clubs\Http\Requests\StoreClubRequest;
 use App\Modules\Clubs\Http\Requests\UpdateClubRequest;
@@ -14,6 +16,7 @@ use App\Modules\Sports\Models\Sport;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 final class AdminClubController extends Controller
 {
@@ -92,5 +95,41 @@ final class AdminClubController extends Controller
         }
         $action->execute($club);
         return redirect('/admin/clubs')->with('success', __('Club deleted.'));
+    }
+
+    // ─── Import / Export ──────────────────────────────────────
+
+    public function export(ExportClubsAction $action): StreamedResponse
+    {
+        $this->authorize('viewAny', Club::class);
+        return $action->execute();
+    }
+
+    public function exportTemplate(ExportClubsAction $action): StreamedResponse
+    {
+        $this->authorize('viewAny', Club::class);
+        return $action->template();
+    }
+
+    public function import(Request $request, ImportClubsAction $action): RedirectResponse
+    {
+        $this->authorize('create', Club::class);
+        $request->validate([
+            'file' => ['required', 'file', 'mimes:csv,txt', 'max:5120'],
+        ]);
+
+        $result = $action->execute($request->file('file'));
+        $msg = __(':c created, :u updated. :s row(s) skipped.', [
+            'c' => $result['created'],
+            'u' => $result['updated'],
+            's' => count($result['skipped']),
+        ]);
+
+        $redirect = redirect('/admin/clubs')->with('success', $msg);
+        if (!empty($result['skipped'])) {
+            $lines = array_map(fn ($r) => "Row {$r['row']}: {$r['error']}", $result['skipped']);
+            $redirect = $redirect->with('import_errors', array_slice($lines, 0, 20));
+        }
+        return $redirect;
     }
 }

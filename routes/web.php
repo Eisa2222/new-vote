@@ -34,20 +34,28 @@ Route::middleware(['web', 'auth'])->prefix('admin')->group(function () {
         return view('admin.dashboard');
     });
 
-    Route::get('clubs',                [AdminClubController::class, 'index']);
-    Route::get('clubs/create',         [AdminClubController::class, 'create']);
-    Route::post('clubs',               [AdminClubController::class, 'store']);
-    Route::get('clubs/{club}/edit',    [AdminClubController::class, 'edit']);
-    Route::put('clubs/{club}',         [AdminClubController::class, 'update']);
-    Route::post('clubs/{club}/toggle', [AdminClubController::class, 'toggle']);
-    Route::delete('clubs/{club}',      [AdminClubController::class, 'destroy']);
+    Route::get('clubs',                       [AdminClubController::class, 'index']);
+    Route::get('clubs/create',                [AdminClubController::class, 'create']);
+    Route::post('clubs',                      [AdminClubController::class, 'store']);
+    // Import / export — these must come BEFORE /{club} routes so the words
+    // "export"/"import"/"template" aren't captured as a club slug parameter.
+    Route::get('clubs/export',                [AdminClubController::class, 'export']);
+    Route::get('clubs/export/template',       [AdminClubController::class, 'exportTemplate']);
+    Route::post('clubs/import',               [AdminClubController::class, 'import']);
+    Route::get('clubs/{club}/edit',           [AdminClubController::class, 'edit']);
+    Route::put('clubs/{club}',                [AdminClubController::class, 'update']);
+    Route::post('clubs/{club}/toggle',        [AdminClubController::class, 'toggle']);
+    Route::delete('clubs/{club}',             [AdminClubController::class, 'destroy']);
 
-    Route::get('players',                    [AdminPlayerController::class, 'index']);
-    Route::get('players/create',             [AdminPlayerController::class, 'create']);
-    Route::post('players',                   [AdminPlayerController::class, 'store']);
-    Route::get('players/{player}/edit',      [AdminPlayerController::class, 'edit']);
-    Route::put('players/{player}',           [AdminPlayerController::class, 'update']);
-    Route::delete('players/{player}',        [AdminPlayerController::class, 'destroy']);
+    Route::get('players',                     [AdminPlayerController::class, 'index']);
+    Route::get('players/create',              [AdminPlayerController::class, 'create']);
+    Route::post('players',                    [AdminPlayerController::class, 'store']);
+    Route::get('players/export',              [AdminPlayerController::class, 'export']);
+    Route::get('players/export/template',     [AdminPlayerController::class, 'exportTemplate']);
+    Route::post('players/import',             [AdminPlayerController::class, 'import']);
+    Route::get('players/{player}/edit',       [AdminPlayerController::class, 'edit']);
+    Route::put('players/{player}',            [AdminPlayerController::class, 'update']);
+    Route::delete('players/{player}',         [AdminPlayerController::class, 'destroy']);
 
     Route::get('campaigns',                       [AdminCampaignController::class, 'index']);
     Route::get('campaigns/create',                [AdminCampaignController::class, 'create']);

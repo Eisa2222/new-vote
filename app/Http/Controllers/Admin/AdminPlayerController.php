@@ -7,6 +7,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Modules\Clubs\Models\Club;
 use App\Modules\Players\Actions\CreatePlayerAction;
+use App\Modules\Players\Actions\ExportPlayersAction;
+use App\Modules\Players\Actions\ImportPlayersAction;
 use App\Modules\Players\Actions\UpdatePlayerAction;
 use App\Modules\Players\Enums\PlayerPosition;
 use App\Modules\Players\Http\Requests\StorePlayerRequest;
@@ -17,6 +19,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 final class AdminPlayerController extends Controller
 {
@@ -81,5 +84,41 @@ final class AdminPlayerController extends Controller
         $this->authorize('delete', $player);
         $player->delete();
         return redirect('/admin/players')->with('success', __('Player deleted.'));
+    }
+
+    // ─── Import / Export ──────────────────────────────────────
+
+    public function export(ExportPlayersAction $action): StreamedResponse
+    {
+        $this->authorize('viewAny', Player::class);
+        return $action->execute();
+    }
+
+    public function exportTemplate(ExportPlayersAction $action): StreamedResponse
+    {
+        $this->authorize('viewAny', Player::class);
+        return $action->template();
+    }
+
+    public function import(Request $request, ImportPlayersAction $action): RedirectResponse
+    {
+        $this->authorize('create', Player::class);
+        $request->validate([
+            'file' => ['required', 'file', 'mimes:csv,txt', 'max:5120'],
+        ]);
+
+        $result = $action->execute($request->file('file'));
+        $msg = __(':c created, :u updated. :s row(s) skipped.', [
+            'c' => $result['created'],
+            'u' => $result['updated'],
+            's' => count($result['skipped']),
+        ]);
+
+        $redirect = redirect('/admin/players')->with('success', $msg);
+        if (!empty($result['skipped'])) {
+            $lines = array_map(fn ($r) => "Row {$r['row']}: {$r['error']}", $result['skipped']);
+            $redirect = $redirect->with('import_errors', array_slice($lines, 0, 20));
+        }
+        return $redirect;
     }
 }

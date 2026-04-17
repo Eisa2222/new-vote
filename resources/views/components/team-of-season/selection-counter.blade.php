@@ -11,7 +11,7 @@
                  :class="lineOk('{{ $slot }}') ? 'bg-emerald-50 text-emerald-800' : 'bg-white text-ink-800'">
                 <div class="text-[10px] md:text-xs font-semibold uppercase tracking-wide">{{ $label }}</div>
                 <div class="mt-1 text-lg md:text-xl font-extrabold">
-                    <span x-text="selected['{{ $slot }}'].length"></span>
+                    <span x-text="lineCount('{{ $slot }}')"></span>
                     <span class="text-ink-500">/{{ $n }}</span>
                 </div>
             </div>

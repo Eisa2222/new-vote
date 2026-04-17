@@ -5,7 +5,14 @@
 @section('page_description', __('Add, edit, filter and manage player data'))
 
 @section('content')
-<div class="rounded-3xl border border-gray-200 bg-white p-5 shadow-sm space-y-5">
+@include('admin._partials.import-export-bar', [
+    'exportUrl'   => '/admin/players/export',
+    'templateUrl' => '/admin/players/export/template',
+    'importUrl'   => '/admin/players/import',
+    'label'       => __('players'),
+])
+
+<div class="rounded-3xl border border-gray-200 bg-white p-5 shadow-sm space-y-5 mt-4">
     <form method="get" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3">
         <input type="text" name="q" value="{{ request('q') }}" placeholder="{{ __('Search player') }}..."
                class="rounded-2xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-emerald-500 outline-none">

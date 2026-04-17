@@ -325,19 +325,28 @@ function tosVote({ formation, totalRequired, candidates, clubsByPosition }) {
         totalRequired,
         candidates,
         clubsByPosition,
-        selected: { attack: [], midfield: [], defense: [], goalkeeper: [] },
+        // Each line is a fixed-length array of `null`s — one cell per pitch
+        // slot. Placing a pick at index N means the player goes into slot N
+        // (left-to-right/right-to-left depending on RTL). This is how the
+        // voter's "I clicked slot 3" expectation is preserved.
+        selected: {
+            attack:     new Array(formation.attack).fill(null),
+            midfield:   new Array(formation.midfield).fill(null),
+            defense:    new Array(formation.defense).fill(null),
+            goalkeeper: new Array(formation.goalkeeper).fill(null),
+        },
         submitting: false,
         alertMsg: '',
         modal: { open: false, position: null, step: 'club', clubId: null, targetIndex: null, query: '' },
 
         // ── pitch interactions ─────────────────────────
         slotClicked(pos, idx) {
-            // Filled slot → remove
+            // Filled slot → clear it (stay in the same cell)
             if (this.selected[pos][idx]) {
-                this.selected[pos].splice(idx, 1);
+                this.selected[pos][idx] = null;
                 return;
             }
-            // Empty slot → open modal drill-down
+            // Empty slot → open modal drill-down for THIS slot
             this.openModal(pos, idx);
         },
 
@@ -365,17 +374,13 @@ function tosVote({ formation, totalRequired, candidates, clubsByPosition }) {
         },
         pickPlayer(candId) {
             const pos = this.modal.position;
+            const idx = this.modal.targetIndex;
             if (this.isAlreadyPicked(candId)) return;
 
-            // Enforce line capacity — swap oldest if full
-            if (this.selected[pos].length >= this.formation[pos]) {
-                this.selected[pos].shift();
-                this.flash(
-                    '{{ __("Line :label was full — oldest pick replaced.") }}'
-                        .replace(':label', labels[pos] || pos)
-                );
-            }
-            this.selected[pos].push(candId);
+            // Place the pick at the EXACT slot the voter clicked.
+            // Indices outside the line's capacity fall back to the first
+            // empty cell, but targetIndex is always within range here.
+            this.selected[pos][idx] = candId;
             this.closeModal();
         },
 
@@ -403,8 +408,12 @@ function tosVote({ formation, totalRequired, candidates, clubsByPosition }) {
         },
 
         isAlreadyPicked(id) {
-            return Object.values(this.selected).some(arr => arr.includes(id));
+            // An id may live anywhere in any line array; null entries are empty slots.
+            return Object.values(this.selected).some(arr => arr.some(v => v === id));
         },
+
+        /** Count only truthy (non-null) cells in a line. */
+        lineCount(pos) { return this.selected[pos].filter(v => v != null).length; },
 
         // ── helpers used in templates ──────────────────
         nameFor(id)     { return this.candidates[id]?.name || ''; },
@@ -415,15 +424,16 @@ function tosVote({ formation, totalRequired, candidates, clubsByPosition }) {
         headerColor()   { return colors[this.modal.position] || 'bg-brand-700'; },
 
         totalSelected() {
-            return Object.values(this.selected).reduce((a, ids) => a + ids.length, 0);
+            return Object.values(this.selected).reduce(
+                (a, arr) => a + arr.filter(v => v != null).length, 0);
         },
-        lineOk(pos) { return this.selected[pos].length === this.formation[pos]; },
+        lineOk(pos) { return this.lineCount(pos) === this.formation[pos]; },
         canSubmit() { return this.totalSelected() === this.totalRequired; },
 
         missingSummary() {
             const missing = [];
             for (const [pos, n] of Object.entries(this.formation)) {
-                const got = this.selected[pos].length;
+                const got = this.lineCount(pos);
                 if (got !== n) missing.push(`${labels[pos]}: ${got}/${n}`);
             }
             return missing.length ? '{{ __("Incomplete") }} — ' + missing.join(' · ') : '';
@@ -443,6 +453,7 @@ function tosVote({ formation, totalRequired, candidates, clubsByPosition }) {
             holder.innerHTML = '';
             for (const [pos, ids] of Object.entries(this.selected)) {
                 ids.forEach(v => {
+                    if (v == null) return; // empty slot
                     const input = document.createElement('input');
                     input.type = 'hidden';
                     input.name = `${pos}[]`;
