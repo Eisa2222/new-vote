@@ -25,17 +25,23 @@ final class AdminTeamOfSeasonController extends Controller
             'minLine'  => TeamOfSeasonFormation::MIN_LINE,
             'maxLine'  => TeamOfSeasonFormation::MAX_LINE,
             'outfield' => TeamOfSeasonFormation::OUTFIELD_TOTAL,
+            'leagues'  => \App\Modules\Leagues\Models\League::active()->with('sport')->orderBy('name_en')->get(),
         ]);
     }
 
-    public function store(Request $request, CreateTeamOfSeasonCampaignAction $action): RedirectResponse
-    {
+    public function store(
+        Request $request,
+        CreateTeamOfSeasonCampaignAction $action,
+        AttachTeamOfSeasonCandidatesAction $attach,
+    ): RedirectResponse {
         $this->authorize('create', Campaign::class);
         $data = $request->validate([
             'title_ar'       => ['required', 'string', 'max:180'],
             'title_en'       => ['required', 'string', 'max:180'],
             'description_ar' => ['nullable', 'string'],
             'description_en' => ['nullable', 'string'],
+            'league_id'      => ['nullable', 'integer', 'exists:leagues,id'],
+            'auto_populate'  => ['nullable', 'boolean'],
             'start_at'       => ['required', 'date'],
             'end_at'         => ['required', 'date', 'after:start_at'],
             'max_voters'     => ['nullable', 'integer', 'min:1'],
@@ -44,14 +50,42 @@ final class AdminTeamOfSeasonController extends Controller
             'defense'        => ['required', 'integer', 'min:'.TeamOfSeasonFormation::MIN_LINE, 'max:'.TeamOfSeasonFormation::MAX_LINE],
         ]);
 
+        $autoPopulate = $request->boolean('auto_populate') && !empty($data['league_id']);
+
         try {
             $campaign = $action->execute($data);
         } catch (\DomainException $e) {
             return back()->withInput()->withErrors(['formation' => $e->getMessage()]);
         }
 
-        return redirect("/admin/tos/{$campaign->id}/candidates")
-            ->with('success', __('Campaign created. Now attach the candidates for each line.'));
+        $autoAdded = 0;
+        if ($autoPopulate) {
+            $clubIds = \App\Modules\Leagues\Models\League::find($data['league_id'])
+                ?->clubs()->pluck('clubs.id')->all() ?? [];
+            if (!empty($clubIds)) {
+                $players = Player::active()
+                    ->whereIn('club_id', $clubIds)
+                    ->whereNotNull('position')
+                    ->get()
+                    ->groupBy(fn ($p) => $p->position?->value);
+
+                foreach ($players as $slot => $group) {
+                    $category = $campaign->categories()->where('position_slot', $slot)->first();
+                    if (!$category) continue;
+                    try {
+                        $autoAdded += $attach->execute($campaign, $category, $group->pluck('id')->all());
+                    } catch (\DomainException) {
+                        // ignore per-line failures; admin can add manually
+                    }
+                }
+            }
+        }
+
+        $msg = $autoAdded > 0
+            ? __('Campaign created and :n players auto-attached from the league.', ['n' => $autoAdded])
+            : __('Campaign created. Now attach the candidates for each line.');
+
+        return redirect("/admin/tos/{$campaign->id}/candidates")->with('success', $msg);
     }
 
     public function candidates(Campaign $campaign): View

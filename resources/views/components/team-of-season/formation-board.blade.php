@@ -23,25 +23,25 @@
         <div class="relative space-y-5 md:space-y-8">
             {{-- Attack line --}}
             <x-team-of-season.formation-line
-                slot="attack"
+                position="attack"
                 :count="$formation['attack']"
                 :label="__('Attack')" />
 
             {{-- Midfield line --}}
             <x-team-of-season.formation-line
-                slot="midfield"
+                position="midfield"
                 :count="$formation['midfield']"
                 :label="__('Midfield')" />
 
             {{-- Defense line --}}
             <x-team-of-season.formation-line
-                slot="defense"
+                position="defense"
                 :count="$formation['defense']"
                 :label="__('Defense')" />
 
             {{-- Goalkeeper line --}}
             <x-team-of-season.formation-line
-                slot="goalkeeper"
+                position="goalkeeper"
                 :count="$formation['goalkeeper']"
                 :label="__('Goalkeeper')" />
         </div>

@@ -1,4 +1,4 @@
-@props(['slot', 'candidate'])
+@props(['position', 'candidate'])
 
 @php
     $p      = $candidate->player;
@@ -9,18 +9,16 @@
 @endphp
 
 <button type="button"
-        @click="toggle('{{ $slot }}', {{ $candidate->id }})"
-        :class="isSelected('{{ $slot }}', {{ $candidate->id }})
+        @click="toggle('{{ $position }}', {{ $candidate->id }})"
+        :class="isSelected('{{ $position }}', {{ $candidate->id }})
                 ? 'border-brand-600 bg-brand-50 ring-2 ring-brand-500'
                 : 'border-ink-200 bg-white hover:border-brand-400 hover:shadow-sm'"
         class="group relative flex items-center gap-3 rounded-2xl p-2.5 text-start border-2 transition focus:outline-none focus:ring-2 focus:ring-brand-500">
-    {{-- Selected checkmark --}}
-    <span x-show="isSelected('{{ $slot }}', {{ $candidate->id }})"
+    <span x-show="isSelected('{{ $position }}', {{ $candidate->id }})"
           class="absolute top-1.5 end-1.5 w-5 h-5 rounded-full bg-brand-600 text-white text-[10px] font-bold flex items-center justify-center shadow">
         &#10003;
     </span>
 
-    {{-- Avatar --}}
     @if($photo)
         <img src="{{ $photo }}" alt="{{ $name }}"
              class="w-11 h-11 md:w-12 md:h-12 rounded-full object-cover flex-shrink-0 border border-ink-200">

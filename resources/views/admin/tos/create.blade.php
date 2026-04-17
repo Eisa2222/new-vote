@@ -52,6 +52,51 @@
         </div>
     </div>
 
+    {{-- LEAGUE + AUTO-POPULATE --}}
+    <div class="rounded-3xl border border-amber-200 bg-amber-50 p-6 space-y-4">
+        <div class="flex items-start gap-3">
+            <div class="text-2xl">⚽</div>
+            <div class="flex-1">
+                <h3 class="font-bold text-amber-900">{{ __('League & candidates') }}</h3>
+                <p class="text-xs text-amber-800 mt-0.5">
+                    {{ __('Pick a league to scope the candidates, and optionally include all its players automatically.') }}
+                </p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium mb-1 text-amber-900">{{ __('League') }}</label>
+                <select name="league_id" id="leagueSelect"
+                        class="w-full rounded-2xl border border-amber-300 bg-white px-4 py-3">
+                    <option value="">— {{ __('Not linked to a league') }} —</option>
+                    @foreach($leagues as $league)
+                        <option value="{{ $league->id }}" @selected(old('league_id') == $league->id)>
+                            {{ $league->localized('name') }}
+                            @if($league->sport) — {{ $league->sport->localized('name') }} @endif
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="flex items-end">
+                <label class="flex items-start gap-3 cursor-pointer select-none w-full rounded-2xl bg-white border border-amber-300 p-3 hover:border-amber-500 has-[:checked]:border-amber-600 has-[:checked]:bg-amber-100 transition">
+                    <input type="checkbox" name="auto_populate" value="1" id="autoPopulate"
+                           {{ old('auto_populate') ? 'checked' : '' }}
+                           class="mt-1 w-5 h-5 rounded border-amber-400 text-amber-600 focus:ring-amber-500">
+                    <span>
+                        <span class="block font-semibold text-amber-900">
+                            {{ __('Auto-attach all players from this league') }}
+                        </span>
+                        <span class="block text-xs text-amber-800 mt-0.5">
+                            {{ __('Active players will be attached to their matching line (goalkeeper / defense / midfield / attack).') }}
+                        </span>
+                    </span>
+                </label>
+            </div>
+        </div>
+    </div>
+
     <div class="rounded-3xl bg-emerald-50 border border-emerald-200 p-6">
         <div class="flex items-center justify-between mb-4">
             <h3 class="font-bold text-emerald-900">{{ __('Formation') }}</h3>

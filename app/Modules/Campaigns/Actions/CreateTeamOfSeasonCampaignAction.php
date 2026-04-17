@@ -40,6 +40,7 @@ final class CreateTeamOfSeasonCampaignAction
                 'description_ar' => $data['description_ar'] ?? null,
                 'description_en' => $data['description_en'] ?? null,
                 'type'           => CampaignType::TeamOfTheSeason->value,
+                'league_id'      => $data['league_id'] ?? null,
                 'start_at'       => $data['start_at'],
                 'end_at'         => $data['end_at'],
                 'max_voters'     => $data['max_voters'] ?? null,

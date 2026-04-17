@@ -36,7 +36,18 @@
       "Bash(curl -s -b /tmp/c.txt \"http://127.0.0.1:8080/admin/campaigns/6\")",
       "Bash(curl -s -b /tmp/c.txt \"http://127.0.0.1:8080/admin/campaigns/6/categories\")",
       "Bash(\"C:/laragon/bin/php/php-8.3.30-Win32-vs16-x64/php.exe\" vendor/bin/pest tests/Feature/Settings/)",
-      "Bash(\"C:/laragon/bin/php/php-8.3.30-Win32-vs16-x64/php.exe\" vendor/bin/pest tests/Feature/Settings/ --filter=\"add a new\")"
+      "Bash(\"C:/laragon/bin/php/php-8.3.30-Win32-vs16-x64/php.exe\" vendor/bin/pest tests/Feature/Settings/ --filter=\"add a new\")",
+      "Bash(where php *)",
+      "Read(//c/xampp/php/**)",
+      "Bash(C:/laragon/bin/php/php-8.3.30-Win32-vs16-x64/php.exe -r ' *)",
+      "Bash(C:/laragon/bin/php/php-8.3.30-Win32-vs16-x64/php.exe artisan tinker '--execute= *)",
+      "WebFetch(domain:saudi-league-2026-be-1eit.bolt.host)",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" http://127.0.0.1:8000/login)",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code} for /admin\\\\n\" http://127.0.0.1:8000/admin)",
+      "Bash(\"C:/laragon/bin/php/php-8.3.30-Win32-vs16-x64/php.exe\" -l \"storage/framework/views/edad4d54ebe208498187aad6eb720a41.php\")",
+      "Bash(rm -f storage/framework/views/*.php)",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" http://127.0.0.1:8000/vote/07WhL7huvlLgxnsGYaWMU9eI2QayTa8d)",
+      "Bash(rm resources/views/components/team-of-season/position-panel.blade.php)"
     ]
   }
 }
