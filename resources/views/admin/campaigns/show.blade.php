@@ -21,9 +21,16 @@
         <div>
             <a href="/admin/campaigns" class="text-sm text-slate-500 hover:underline">← {{ __('Campaigns') }}</a>
             <h1 class="text-2xl font-bold text-slate-800 mt-1">{{ $campaign->localized('title') }}</h1>
-            <div class="mt-2 flex gap-2 items-center">
-                <span class="badge-{{ $campaign->status->value }}">{{ $campaign->status->value }}</span>
-                <span class="text-sm text-slate-500">{{ $campaign->type->value }}</span>
+            <div class="mt-2 flex gap-2 items-center flex-wrap">
+                @php
+                    $typeLabels = [
+                        'individual_award'   => __('Individual award'),
+                        'team_award'         => __('Team award'),
+                        'team_of_the_season' => __('Team of the Season'),
+                    ];
+                @endphp
+                <span class="badge badge-{{ $campaign->status->value }} px-3 py-1">{{ $campaign->status->label() }}</span>
+                <span class="text-sm text-slate-500">{{ $typeLabels[$campaign->type->value] ?? $campaign->type->value }}</span>
             </div>
         </div>
     </div>

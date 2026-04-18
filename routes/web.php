@@ -23,11 +23,13 @@ Route::post('logout', [LoginController::class, 'destroy'])
 Route::middleware(['web', 'auth'])->prefix('admin')->group(function () {
     Route::get('/', function () {
         $u = auth()->user();
-        // Committee members only see campaigns/results workflow.
+        // Committee members land on the campaigns board so they see the
+        // pending-approval queue immediately at the top. They can move
+        // to /admin/results whenever they want to approve a result.
         if ($u && $u->hasRole('committee') && ! $u->can('users.manage')) {
-            return redirect('/admin/results');
+            return redirect('/admin/campaigns');
         }
-        // Campaign managers land on their campaigns board.
+        // Campaign managers land on their campaigns board too.
         if ($u && $u->hasRole('campaign_manager') && ! $u->can('users.manage')) {
             return redirect('/admin/campaigns');
         }

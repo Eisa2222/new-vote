@@ -47,6 +47,8 @@ final class RolesPermissionsSeeder extends Seeder
         Role::findOrCreate('committee', 'web')->syncPermissions([
             'campaigns.viewAny',
             'campaigns.approve',          // approves/rejects pending campaigns
+            'campaigns.publish',          // activates the campaign right after approval
+            'campaigns.close',            // can close early if needed
             'results.view',
             'results.calculate',
             'results.approve',

@@ -141,7 +141,7 @@
                             <td class="py-3">
                                 <span class="badge badge-{{ $sport->status->value }}">{{ $sport->status->label() }}</span>
                             </td>
-                            <td class="py-3 text-ink-500">{{ $sport->clubs()->count() }}</td>
+                            <td class="py-3 text-ink-500">{{ $sport->totalClubsCount() }}</td>
                             <td class="py-3 text-end">
                                 <form method="post" action="/admin/settings/sports/{{ $sport->id }}"
                                       onsubmit="return confirm('{{ __('Delete this sport?') }}')">
