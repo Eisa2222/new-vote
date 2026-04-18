@@ -16,11 +16,17 @@ use Illuminate\Support\Facades\DB;
 /**
  * Calculates / recalculates a campaign's results.
  *
- * Writes:
- *   - campaign_results.total_votes, calculated_at, calculated_by, status
- *   - result_items.votes_count, vote_percentage, rank, is_winner, position, metadata
+ * Winner selection rules:
+ *   - Sort by votes desc, then the deterministic tie-breaker
+ *     (display_order, candidate_id).
+ *   - Walk the sorted list: every candidate strictly above the cutoff
+ *     is an unambiguous winner.
+ *   - If a tie group STRADDLES the cutoff (e.g. 5 candidates tied on
+ *     the same vote count but only 3 winner slots left), EVERY
+ *     candidate in that tie group is marked `needs_committee_decision`
+ *     and `is_winner` is left NULL until the committee picks manually.
  *
- * Uses ResultTieBreakerRule for deterministic ordering on ties.
+ *  Approval and announcement are blocked while any tie is unresolved.
  */
 final class CalculateCampaignResultsAction
 {
@@ -48,28 +54,56 @@ final class CalculateCampaignResultsAction
                 ->groupBy('vote_items.voting_category_id', 'vote_items.candidate_id', 'c.display_order')
                 ->get();
 
-            // group by category, apply tie-breaker, then compute rank + winners
             $categories = $campaign->categories;
             $byCategory = $rows->groupBy('voting_category_id');
 
             foreach ($categories as $category) {
-                $tallies = $this->tieBreaker->sort($byCategory[$category->id] ?? collect());
+                $tallies       = $this->tieBreaker->sort($byCategory[$category->id] ?? collect());
                 $categoryTotal = $tallies->sum('votes_count') ?: 1;
-                $winnersTaken = 0;
+                $requiredPicks = (int) $category->required_picks;
+
+                // Group tallies into tie-groups (same votes_count).
+                // Walk the groups filling winner slots; the first group that
+                // overflows is flagged as needing a committee decision.
+                $winnersAssigned   = 0;
+                $ambiguousCandIds  = [];    // candidate_ids in the tied-at-cutoff group
+                $groups            = $tallies->groupBy('votes_count')->values(); // already desc-sorted
+
+                foreach ($groups as $group) {
+                    $groupSize = $group->count();
+                    $remaining = $requiredPicks - $winnersAssigned;
+
+                    if ($remaining <= 0) {
+                        // all remaining candidates are non-winners
+                        break;
+                    }
+                    if ($groupSize <= $remaining) {
+                        // whole group is won
+                        $winnersAssigned += $groupSize;
+                    } else {
+                        // tie straddles the cutoff — flag every member
+                        foreach ($group as $r) $ambiguousCandIds[] = $r->candidate_id;
+                        break;
+                    }
+                }
 
                 foreach ($tallies as $i => $row) {
-                    $isWinner = $winnersTaken < (int) $category->required_picks;
-                    if ($isWinner) $winnersTaken++;
+                    $isAmbiguous = in_array($row->candidate_id, $ambiguousCandIds, true);
+                    $rank        = $i + 1;
+                    $isWinner    = $isAmbiguous
+                        ? null                        // committee must decide
+                        : ($rank <= $requiredPicks);  // otherwise deterministic
 
                     $result->items()->create([
-                        'voting_category_id' => $category->id,
-                        'candidate_id'       => $row->candidate_id,
-                        'position'           => $category->position_slot ?? null,
-                        'votes_count'        => $row->votes_count,
-                        'vote_percentage'    => round(($row->votes_count / $categoryTotal) * 100, 2),
-                        'rank'               => $i + 1,
-                        'is_winner'          => $isWinner,
-                        'is_announced'       => false,
+                        'voting_category_id'       => $category->id,
+                        'candidate_id'             => $row->candidate_id,
+                        'position'                 => $category->position_slot ?? null,
+                        'votes_count'              => $row->votes_count,
+                        'vote_percentage'          => round(($row->votes_count / $categoryTotal) * 100, 2),
+                        'rank'                     => $rank,
+                        'is_winner'                => $isWinner,
+                        'needs_committee_decision' => $isAmbiguous,
+                        'is_announced'             => false,
                     ]);
                 }
             }

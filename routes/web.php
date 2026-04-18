@@ -94,6 +94,7 @@ Route::middleware(['web', 'auth'])->prefix('admin')->group(function () {
     Route::post('results/approve/{result}',      [AdminResultController::class, 'approve'])->name('results.approve');
     Route::post('results/hide/{result}',         [AdminResultController::class, 'hide'])->name('results.hide');
     Route::post('results/announce/{result}',     [AdminResultController::class, 'announce'])->name('results.announce');
+    Route::post('results/{result}/resolve-tie', [AdminResultController::class, 'resolveTie'])->name('results.resolveTie');
 
     Route::get('settings',                        [AdminSettingsController::class, 'index'])->name('admin.settings');
     Route::post('settings/general',               [AdminSettingsController::class, 'updateGeneral']);

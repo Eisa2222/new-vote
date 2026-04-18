@@ -10,9 +10,11 @@ use App\Modules\Results\Actions\AnnounceResultsAction;
 use App\Modules\Results\Actions\ApproveResultsAction;
 use App\Modules\Results\Actions\CalculateCampaignResultsAction;
 use App\Modules\Results\Actions\HideResultsAction;
+use App\Modules\Results\Actions\ResolveTieAction;
 use App\Modules\Results\Models\CampaignResult;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 
 final class AdminResultController extends Controller
 {
@@ -68,5 +70,29 @@ final class AdminResultController extends Controller
         $this->requirePermission('results.announce');
         try { $a->execute($result); return back()->with('success', __('Results announced.')); }
         catch (\DomainException $e) { return back()->withErrors(['status' => $e->getMessage()]); }
+    }
+
+    /**
+     * Committee resolves a tie inside one voting category — picks which
+     * of the tied candidates take the remaining winner slot(s).
+     */
+    public function resolveTie(
+        Request $request,
+        CampaignResult $result,
+        ResolveTieAction $action,
+    ): RedirectResponse {
+        $this->requirePermission('results.approve');
+        $data = $request->validate([
+            'category_id' => ['required', 'integer'],
+            'winner_ids'  => ['required', 'array', 'min:1'],
+            'winner_ids.*'=> ['integer'],
+        ]);
+
+        try {
+            $action->execute($result, (int) $data['category_id'], $data['winner_ids']);
+            return back()->with('success', __('Tie resolved.'));
+        } catch (\DomainException $e) {
+            return back()->withErrors(['tie' => $e->getMessage()]);
+        }
     }
 }

@@ -56,16 +56,21 @@ it('calculate writes total_votes, percentages, and audit fields', function () {
     expect($r->items->first()->vote_percentage)->toBe((float) round(5/7*100, 2));
 });
 
-it('tie-breaker sorts deterministically on equal votes', function () {
-    // Both candidates get 3 votes — lower display_order wins
+it('tie-breaker orders ranks deterministically AND flags tied-at-cutoff items for the committee', function () {
+    // Both candidates get 3 votes; required_picks=1 → tie straddles the
+    // cutoff → both items get needs_committee_decision=true and is_winner=null.
+    // Rank order is still deterministic (lower display_order first) so the
+    // UI can list them predictably before the committee picks.
     $c = buildResultScenario(votesFor1: 3, votesFor2: 3);
     $this->actingAs(makeSuperAdmin());
     $r = (new CalculateCampaignResultsAction())->execute($c);
 
     $ranked = $r->items->sortBy('rank')->values();
-    // candidate 1 (display_order 0) must be rank 1
-    expect($ranked[0]->is_winner)->toBeTrue();
     expect($ranked[0]->candidate->display_order)->toBe(0);
+    expect($ranked[0]->needs_committee_decision)->toBeTrue();
+    expect($ranked[0]->is_winner)->toBeNull();
+    expect($ranked[1]->needs_committee_decision)->toBeTrue();
+    expect($ranked[1]->is_winner)->toBeNull();
 });
 
 it('tie-breaker service sorts by votes then display_order then id', function () {

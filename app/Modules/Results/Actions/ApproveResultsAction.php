@@ -23,6 +23,10 @@ final class ApproveResultsAction
     {
         $this->rule->assert($result->status, ResultStatus::Approved);
 
+        if ($result->items()->where('needs_committee_decision', true)->exists()) {
+            throw new \DomainException(__('Resolve all tied candidates before approving the results.'));
+        }
+
         $result->update([
             'status'       => ResultStatus::Approved->value,
             'approved_at'  => now(),
