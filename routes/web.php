@@ -57,17 +57,21 @@ Route::middleware(['web', 'auth'])->prefix('admin')->group(function () {
     Route::put('players/{player}',            [AdminPlayerController::class, 'update']);
     Route::delete('players/{player}',         [AdminPlayerController::class, 'destroy']);
 
-    Route::get('campaigns',                       [AdminCampaignController::class, 'index']);
-    Route::get('campaigns/create',                [AdminCampaignController::class, 'create']);
-    Route::post('campaigns',                      [AdminCampaignController::class, 'store']);
-    Route::get('campaigns/{campaign}',            [AdminCampaignController::class, 'show']);
-    Route::get('campaigns/{campaign}/edit',       [AdminCampaignController::class, 'edit']);
-    Route::put('campaigns/{campaign}',            [AdminCampaignController::class, 'update']);
-    Route::get('campaigns/{campaign}/stats',      [AdminCampaignController::class, 'stats']);
-    Route::post('campaigns/{campaign}/publish',   [AdminCampaignController::class, 'publish']);
-    Route::post('campaigns/{campaign}/activate',  [AdminCampaignController::class, 'activate']);
-    Route::post('campaigns/{campaign}/close',     [AdminCampaignController::class, 'close']);
-    Route::post('campaigns/{campaign}/archive',   [AdminCampaignController::class, 'archive']);
+    Route::get('campaigns',                              [AdminCampaignController::class, 'index']);
+    Route::get('campaigns/create',                       [AdminCampaignController::class, 'create']);
+    Route::post('campaigns',                             [AdminCampaignController::class, 'store']);
+    Route::get('campaigns/{campaign}',                   [AdminCampaignController::class, 'show']);
+    Route::delete('campaigns/{campaign}',                [AdminCampaignController::class, 'destroy']);
+    Route::get('campaigns/{campaign}/edit',              [AdminCampaignController::class, 'edit']);
+    Route::put('campaigns/{campaign}',                   [AdminCampaignController::class, 'update']);
+    Route::get('campaigns/{campaign}/stats',             [AdminCampaignController::class, 'stats']);
+    Route::post('campaigns/{campaign}/submit-approval',  [AdminCampaignController::class, 'submitForApproval']);
+    Route::post('campaigns/{campaign}/approve',          [AdminCampaignController::class, 'approve']);
+    Route::post('campaigns/{campaign}/reject',           [AdminCampaignController::class, 'reject']);
+    Route::post('campaigns/{campaign}/publish',          [AdminCampaignController::class, 'publish']);
+    Route::post('campaigns/{campaign}/activate',         [AdminCampaignController::class, 'activate']);
+    Route::post('campaigns/{campaign}/close',            [AdminCampaignController::class, 'close']);
+    Route::post('campaigns/{campaign}/archive',          [AdminCampaignController::class, 'archive']);
 
     Route::get('campaigns/{campaign}/categories',   [AdminCategoryController::class, 'index']);
     Route::post('campaigns/{campaign}/categories',  [AdminCategoryController::class, 'store']);

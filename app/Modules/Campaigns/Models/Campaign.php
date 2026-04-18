@@ -21,14 +21,18 @@ final class Campaign extends Model
         'title_ar', 'title_en', 'description_ar', 'description_en',
         'type', 'league_id', 'start_at', 'end_at', 'max_voters', 'public_token',
         'status', 'results_visibility', 'created_by',
+        'committee_approved_at', 'committee_approved_by',
+        'committee_rejected_at', 'committee_rejected_by', 'committee_rejection_note',
     ];
 
     protected $casts = [
-        'type'               => CampaignType::class,
-        'status'             => CampaignStatus::class,
-        'results_visibility' => ResultsVisibility::class,
-        'start_at'           => 'datetime',
-        'end_at'             => 'datetime',
+        'type'                  => CampaignType::class,
+        'status'                => CampaignStatus::class,
+        'results_visibility'    => ResultsVisibility::class,
+        'start_at'              => 'datetime',
+        'end_at'                => 'datetime',
+        'committee_approved_at' => 'datetime',
+        'committee_rejected_at' => 'datetime',
     ];
 
     protected static function booted(): void
@@ -68,5 +72,15 @@ final class Campaign extends Model
     public function reachedMaxVoters(): bool
     {
         return $this->max_voters !== null && $this->votes()->count() >= $this->max_voters;
+    }
+
+    public function approvedBy(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\App\Models\User::class, 'committee_approved_by');
+    }
+
+    public function rejectedBy(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\App\Models\User::class, 'committee_rejected_by');
     }
 }

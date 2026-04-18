@@ -28,16 +28,29 @@
         </div>
     </div>
 
-    @if($campaign->status->value === 'draft')
+    @if(in_array($campaign->status->value, ['draft', 'rejected']))
         <div class="rounded-3xl bg-gradient-to-r from-amber-50 to-emerald-50 border-2 border-amber-300 p-6 mb-6 shadow-sm">
             <div class="flex items-center justify-between gap-4 flex-wrap">
                 <div class="flex items-start gap-4">
-                    <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center text-2xl flex-shrink-0">⚠️</div>
+                    <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center text-2xl flex-shrink-0">
+                        {{ $campaign->status->value === 'rejected' ? '❌' : '⚠️' }}
+                    </div>
                     <div>
-                        <h3 class="font-bold text-amber-900 text-lg">{{ __('This campaign is a draft') }}</h3>
+                        <h3 class="font-bold text-amber-900 text-lg">
+                            @if($campaign->status->value === 'rejected')
+                                {{ __('Rejected by committee') }}
+                            @else
+                                {{ __('This campaign is a draft') }}
+                            @endif
+                        </h3>
                         <p class="text-sm text-amber-800 mt-1">
-                            {{ __('Publish the campaign to activate the public voting link. Voters cannot access /vote/{token} until you publish.') }}
+                            {{ __('Submit the campaign to the committee for approval. Voting will be open only after approval.') }}
                         </p>
+                        @if($campaign->committee_rejection_note)
+                            <div class="mt-3 rounded-xl bg-rose-50 border border-rose-200 p-3 text-sm text-rose-800">
+                                <strong>{{ __('Rejection note') }}:</strong> {{ $campaign->committee_rejection_note }}
+                            </div>
+                        @endif
                     </div>
                 </div>
                 <div class="flex gap-2 flex-shrink-0 flex-wrap">
@@ -45,13 +58,48 @@
                        class="rounded-2xl border-2 border-amber-500 text-amber-700 hover:bg-amber-100 px-6 py-3 font-semibold">
                         ✏️ {{ __('Edit') }}
                     </a>
-                    <form method="post" action="/admin/campaigns/{{ $campaign->id }}/publish">
+                    <form method="post" action="/admin/campaigns/{{ $campaign->id }}/submit-approval">
                         @csrf
                         <button class="rounded-2xl bg-brand-600 hover:bg-brand-700 text-white px-8 py-3 font-semibold text-lg shadow-brand">
-                            🚀 {{ __('Publish & Activate') }}
+                            📤 {{ __('Submit for committee approval') }}
                         </button>
                     </form>
                 </div>
+            </div>
+        </div>
+    @endif
+
+    @if($campaign->status->value === 'pending_approval')
+        <div class="rounded-3xl bg-amber-50 border-2 border-amber-300 p-6 mb-6 shadow-sm">
+            <div class="flex items-center justify-between gap-4 flex-wrap">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center text-2xl flex-shrink-0">⏳</div>
+                    <div>
+                        <h3 class="font-bold text-amber-900 text-lg">{{ __('Pending committee approval') }}</h3>
+                        <p class="text-sm text-amber-800 mt-1">
+                            {{ __('Awaiting review by a Voting Committee member before voting can be activated.') }}
+                        </p>
+                    </div>
+                </div>
+
+                @can('campaigns.approve')
+                    <div class="flex gap-2 flex-wrap">
+                        <form method="post" action="/admin/campaigns/{{ $campaign->id }}/approve">
+                            @csrf
+                            <button class="rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 font-bold shadow">
+                                ✓ {{ __('Approve') }}
+                            </button>
+                        </form>
+                        <form method="post" action="/admin/campaigns/{{ $campaign->id }}/reject"
+                              onsubmit="this.querySelector('[name=reason]').value = prompt('{{ __('Reason for rejection (optional):') }}') || ''">
+                            @csrf
+                            <input type="hidden" name="reason">
+                            <button class="rounded-2xl border-2 border-rose-400 text-rose-700 hover:bg-rose-50 px-6 py-3 font-bold">
+                                ✗ {{ __('Reject') }}
+                            </button>
+                        </form>
+                    </div>
+                @endcan
             </div>
         </div>
     @endif
@@ -144,4 +192,27 @@
             </div>
         @endforeach
     </div>
+
+    @can('campaigns.delete', $campaign)
+        {{-- Danger zone: delete campaign permanently. Kept at the bottom and
+             visually separated so it isn't confused with everyday actions. --}}
+        <div class="mt-8 rounded-3xl border-2 border-rose-200 bg-rose-50 p-6">
+            <div class="flex items-center justify-between gap-4 flex-wrap">
+                <div>
+                    <h3 class="font-bold text-rose-900">🗑️ {{ __('Danger zone') }}</h3>
+                    <p class="text-sm text-rose-800 mt-1">
+                        {{ __('Deleting removes the campaign, its categories, candidates, votes and result. This cannot be undone.') }}
+                    </p>
+                </div>
+                <form method="post" action="/admin/campaigns/{{ $campaign->id }}"
+                      onsubmit="return confirm('{{ __('Permanently delete :t? This cannot be undone.', ['t' => $campaign->localized('title')]) }}')">
+                    @csrf @method('DELETE')
+                    <button type="submit"
+                            class="rounded-2xl bg-rose-600 hover:bg-rose-700 text-white px-6 py-3 font-bold shadow">
+                        🗑️ {{ __('Delete campaign') }}
+                    </button>
+                </form>
+            </div>
+        </div>
+    @endcan
 @endsection

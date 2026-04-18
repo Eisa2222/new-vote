@@ -122,11 +122,10 @@
         @else
             {{-- Pitch view for TOS campaigns after approval --}}
             @if($campaign->type?->value === 'team_of_the_season' && in_array($resultStatus, ['approved', 'announced']))
-                <?php
-                    use App\Modules\Campaigns\Domain\TeamOfSeasonFormation as TOSF;
-                    $tosFormation = TOSF::fromCampaign($campaign);
+                @php
+                    $tosFormation  = \App\Modules\Campaigns\Domain\TeamOfSeasonFormation::fromCampaign($campaign);
                     $winnersBySlot = $result->items->where('is_winner', true)->groupBy('position');
-                ?>
+                @endphp
                 <div class="mb-6 rounded-3xl overflow-hidden shadow-xl relative"
                      style="background: linear-gradient(to bottom, #065f46, #064e3b); min-height: 480px;">
                     <div class="absolute inset-0 opacity-20"

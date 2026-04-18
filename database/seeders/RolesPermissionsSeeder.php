@@ -16,7 +16,8 @@ final class RolesPermissionsSeeder extends Seeder
             'clubs.viewAny', 'clubs.create', 'clubs.update', 'clubs.delete',
             'players.viewAny', 'players.create', 'players.update', 'players.delete',
             'campaigns.viewAny', 'campaigns.create', 'campaigns.update',
-            'campaigns.publish', 'campaigns.close', 'campaigns.archive',
+            'campaigns.publish', 'campaigns.close', 'campaigns.archive', 'campaigns.delete',
+            'campaigns.approve', // committee-only: approves a PendingApproval campaign
             'results.view', 'results.calculate', 'results.approve',
             'results.hide', 'results.announce',
             'users.manage',
@@ -45,6 +46,7 @@ final class RolesPermissionsSeeder extends Seeder
         // ──────────────────────────────────────────────
         Role::findOrCreate('committee', 'web')->syncPermissions([
             'campaigns.viewAny',
+            'campaigns.approve',          // approves/rejects pending campaigns
             'results.view',
             'results.calculate',
             'results.approve',
@@ -62,6 +64,7 @@ final class RolesPermissionsSeeder extends Seeder
             'players.viewAny', 'players.create', 'players.update', 'players.delete',
             'campaigns.viewAny', 'campaigns.create', 'campaigns.update',
             'campaigns.publish', 'campaigns.close', 'campaigns.archive',
+            'campaigns.delete',           // can delete drafts/campaigns without votes
             'results.view',
         ]);
     }

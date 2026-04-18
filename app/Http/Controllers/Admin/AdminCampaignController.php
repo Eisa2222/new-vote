@@ -6,10 +6,14 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Modules\Campaigns\Actions\ActivateVotingCampaignAction;
+use App\Modules\Campaigns\Actions\ApproveCampaignAction;
 use App\Modules\Campaigns\Actions\ArchiveVotingCampaignAction;
 use App\Modules\Campaigns\Actions\CloseVotingCampaignAction;
 use App\Modules\Campaigns\Actions\CreateVotingCampaignAction;
+use App\Modules\Campaigns\Actions\DeleteCampaignAction;
 use App\Modules\Campaigns\Actions\PublishVotingCampaignAction;
+use App\Modules\Campaigns\Actions\RejectCampaignAction;
+use App\Modules\Campaigns\Actions\SubmitCampaignForApprovalAction;
 use App\Modules\Voting\Services\LiveVoterCountService;
 use Illuminate\Http\JsonResponse;
 use App\Modules\Campaigns\Enums\CampaignStatus;
@@ -181,5 +185,51 @@ final class AdminCampaignController extends Controller
     {
         $this->authorize('view', $campaign);
         return response()->json(['data' => $counter->stats($campaign)]);
+    }
+
+    // ─── Committee approval flow ─────────────────────────────────
+
+    public function submitForApproval(Campaign $campaign, SubmitCampaignForApprovalAction $a): RedirectResponse
+    {
+        $this->authorize('submitApproval', $campaign);
+        try {
+            $a->execute($campaign);
+            return back()->with('success', __('Campaign submitted to committee for approval.'));
+        } catch (\DomainException $e) {
+            return back()->withErrors(['status' => $e->getMessage()]);
+        }
+    }
+
+    public function approve(Campaign $campaign, ApproveCampaignAction $a): RedirectResponse
+    {
+        $this->authorize('approve', $campaign);
+        try {
+            $a->execute($campaign);
+            return back()->with('success', __('Campaign approved. It is now Published.'));
+        } catch (\DomainException $e) {
+            return back()->withErrors(['status' => $e->getMessage()]);
+        }
+    }
+
+    public function reject(Request $request, Campaign $campaign, RejectCampaignAction $a): RedirectResponse
+    {
+        $this->authorize('approve', $campaign);
+        try {
+            $a->execute($campaign, $request->input('reason'));
+            return back()->with('success', __('Campaign rejected. The admin can edit and resubmit.'));
+        } catch (\DomainException $e) {
+            return back()->withErrors(['status' => $e->getMessage()]);
+        }
+    }
+
+    public function destroy(Campaign $campaign, DeleteCampaignAction $a): RedirectResponse
+    {
+        $this->authorize('delete', $campaign);
+        try {
+            $a->execute($campaign);
+            return redirect('/admin/campaigns')->with('success', __('Campaign deleted.'));
+        } catch (\DomainException $e) {
+            return back()->withErrors(['delete' => $e->getMessage()]);
+        }
     }
 }
