@@ -70,8 +70,10 @@
                         <label class="block text-sm font-medium mb-1.5 text-ink-800">{{ __('Email') }}</label>
                         <input type="email" name="email" value="{{ old('email') }}" required autofocus
                                class="w-full rounded-xl border border-ink-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
-                               placeholder="admin@sfpa.sa">
+                               placeholder="email@example.com">
                     </div>
+
+
                     <div>
                         <label class="block text-sm font-medium mb-1.5 text-ink-800">{{ __('Password') }}</label>
                         <input type="password" name="password" required
@@ -82,6 +84,15 @@
                         <input type="checkbox" name="remember" value="1" class="rounded border-ink-300 text-brand-600 focus:ring-brand-500">
                         <span>{{ __('Remember me') }}</span>
                     </label>
+
+                   <div class="text-center mt-3">
+    <a href="{{ route('password.request') }}" class="text-sm text-ink-500 hover:text-brand-600">
+        {{ __('Forgot your password?') }}
+    </a>
+</div>
+
+
+
                     <button class="w-full rounded-xl bg-brand-600 hover:bg-brand-700 text-white py-3.5 font-semibold transition">
                         {{ __('Sign in') }}
                     </button>

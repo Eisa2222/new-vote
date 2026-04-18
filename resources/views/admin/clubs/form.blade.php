@@ -6,7 +6,7 @@
 
     <form method="post" enctype="multipart/form-data"
           action="{{ $club->exists ? '/admin/clubs/'.$club->id : '/admin/clubs' }}"
-          class="bg-white rounded-2xl shadow p-6 space-y-5 max-w-3xl">
+          class="bg-white rounded-2xl shadow p-6 space-y-5 ">
         @csrf
         @if($club->exists) @method('PUT') @endif
 
@@ -68,34 +68,22 @@
 
         <div>
             <label class="block text-sm font-medium text-slate-700 mb-1">{{ __('Status') }}</label>
-            <select name="status" class="border rounded-lg px-3 py-2">
+            <select name="status" class="border rounded-lg px-10 py-2">
                 <option value="active"   @selected(old('status', $club->status?->value) === 'active')>{{ __('Active') }}</option>
                 <option value="inactive" @selected(old('status', $club->status?->value) === 'inactive')>{{ __('Inactive') }}</option>
             </select>
         </div>
 
-        <div class="sticky bottom-0 bg-white pt-5 pb-2 -mx-6 px-6 border-t border-ink-200 flex items-center justify-between gap-3 flex-wrap">
-            <a href="/admin/clubs"
-               class="rounded-2xl border-2 border-ink-200 hover:bg-ink-50 text-ink-700 px-6 py-3 font-semibold text-base">
-                {{ __('Cancel') }}
-            </a>
-            <button type="submit"
-                    class="rounded-2xl bg-brand-600 hover:bg-brand-700 text-white px-8 py-3 font-semibold text-base shadow-brand">
-                💾 {{ __('Save') }}
-            </button>
-        </div>
+       <div class="sticky bottom-0 bg-white pt-5 pb-2 -mx-6 px-6 border-t border-ink-200 flex items-center justify-end gap-3">
+    <a href="/admin/clubs"
+       class="rounded-2xl border-2 border-ink-200 hover:bg-ink-50 text-ink-700 px-6 py-3 font-semibold text-base">
+        {{ __('Cancel') }}
+    </a>
+    <button type="submit"
+            class="rounded-2xl bg-brand-600 hover:bg-brand-700 text-white px-8 py-3 font-semibold text-base shadow-brand">
+        💾 {{ __('Save') }}
+    </button>
+</div>
     </form>
 
-    @if($club->exists)
-        {{-- Delete form — MUST be outside the edit form (nested forms break _method). --}}
-        <form method="post" action="/admin/clubs/{{ $club->id }}"
-              onsubmit="return confirm('{{ __('Delete this club?') }}')"
-              class="max-w-3xl mt-4 flex justify-end">
-            @csrf @method('DELETE')
-            <button type="submit"
-                    class="rounded-2xl border-2 border-danger-500/50 text-danger-600 hover:bg-danger-500/10 px-6 py-3 font-semibold text-base">
-                🗑 {{ __('Delete') }}
-            </button>
-        </form>
-    @endif
 @endsection

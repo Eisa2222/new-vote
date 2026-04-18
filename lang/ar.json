@@ -508,5 +508,17 @@
     "selected": "محدد",
     "votes": "صوت",
     "votes each": "صوت لكل منهم",
-    "within 48h": "خلال 48 ساعة"
+    "within 48h": "خلال 48 ساعة",
+
+    "Forgot Password": "نسيت كلمة المرور",
+"Forgot your password?": "نسيت كلمة المرور؟",
+"Enter your email and we'll send you a reset link.": "أدخل بريدك الإلكتروني وسنرسل لك رابط إعادة التعيين.",
+"Send Reset Link": "إرسال رابط الاستعادة",
+"Back to Sign in": "العودة لتسجيل الدخول",
+"Reset Password": "إعادة تعيين كلمة المرور",
+"Enter your new password below.": "أدخل كلمة المرور الجديدة أدناه.",
+"New Password": "كلمة المرور الجديدة",
+"Confirm Password": "تأكيد كلمة المرور",
+"If this email exists, a reset link has been sent.": "إذا كان هذا البريد موجوداً، فقد تم إرسال رابط الاستعادة.",
+"Password reset successfully. Please sign in.": "تمت إعادة تعيين كلمة المرور. يرجى تسجيل الدخول."
 }

@@ -19,7 +19,11 @@ final class Club extends Model
     use HasFactory, SoftDeletes, HasTranslations;
 
     protected $fillable = [
-        'name_ar', 'name_en', 'short_name', 'logo_path', 'status',
+        'name_ar',
+        'name_en',
+        'short_name',
+        'logo_path',
+        'status',
     ];
 
     protected $casts = [
@@ -49,8 +53,8 @@ final class Club extends Model
     public function scopeSearch($q, ?string $term)
     {
         if (! $term) return $q;
-        $like = '%'.$term.'%';
-        return $q->where(fn ($w) => $w
+        $like = '%' . $term . '%';
+        return $q->where(fn($w) => $w
             ->where('name_ar', 'like', $like)
             ->orWhere('name_en', 'like', $like)
             ->orWhere('short_name', 'like', $like));

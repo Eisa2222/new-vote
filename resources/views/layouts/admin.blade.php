@@ -117,9 +117,9 @@
             @yield('content')
         </main>
 
-        <footer class="px-8 py-5 text-center text-xs text-ink-500 border-t border-ink-200 mt-10">
-            © {{ date('Y') }} {{ __('Saudi Football Players Association') }} — {{ __('Voting Platform') }}
-        </footer>
+      <footer class="fixed bottom-0 left-0 right-0 bg-white px-8 py-5 text-center text-xs text-ink-500 border-t border-ink-200 z-10">
+    © {{ date('Y') }} {{ __('Saudi Football Players Association') }} — {{ __('Voting Platform') }}
+</footer>
     </div>
 </div>
 <script>

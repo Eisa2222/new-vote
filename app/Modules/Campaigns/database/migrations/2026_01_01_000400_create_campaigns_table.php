@@ -14,12 +14,11 @@ return new class extends Migration {
             $t->text('description_ar')->nullable();
             $t->text('description_en')->nullable();
             $t->enum('type', ['individual_award', 'team_award', 'team_of_the_season']);
-            $t->timestamp('start_at');
-            $t->timestamp('end_at');
+            $t->dateTime('start_at');
+            $t->dateTime('end_at');
             $t->unsignedInteger('max_voters')->nullable();
             $t->string('public_token', 64)->unique();
-            $t->enum('status', ['draft', 'published', 'active', 'closed', 'archived'])
-                ->default('draft')->index();
+            $t->enum('status', ['draft', 'published', 'active', 'closed', 'archived'])->default('draft')->index();
             $t->enum('results_visibility', ['hidden', 'approved', 'announced'])->default('hidden');
             $t->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $t->timestamps();
@@ -34,8 +33,7 @@ return new class extends Migration {
             $t->string('title_ar', 180);
             $t->string('title_en', 180);
             // For team_of_the_season, one category per position slot group:
-            $t->enum('position_slot', ['attack', 'midfield', 'defense', 'goalkeeper', 'any'])
-                ->default('any');
+            $t->enum('position_slot', ['attack', 'midfield', 'defense', 'goalkeeper', 'any'])->default('any');
             $t->unsignedSmallInteger('required_picks')->default(1); // e.g. 3 attackers
             $t->unsignedSmallInteger('display_order')->default(0);
             $t->timestamps();

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Modules\Auth\Jobs\SendPasswordResetJob;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -52,5 +53,20 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function sendPasswordResetNotification($token): void
+    {
+        SendPasswordResetJob::dispatch($this, (string) $token, $this->preferredLocaleForPasswordReset());
+    }
+
+    public function preferredLocaleForPasswordReset(): string
+    {
+        $locale = $this->locale
+            ?? $this->preferred_locale
+            ?? app()->getLocale()
+            ?? config('app.locale', 'en');
+
+        return $locale === 'ar' ? 'ar' : 'en';
     }
 }
