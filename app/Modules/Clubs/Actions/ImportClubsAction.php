@@ -33,14 +33,28 @@ final class ImportClubsAction
         $bom = fread($fh, 3);
         if ($bom !== "\xEF\xBB\xBF") rewind($fh);
 
-        // Skip optional Excel "sep=," hint line.
-        $peek = ftell($fh);
-        $first = fgets($fh);
-        if ($first === false || stripos(ltrim($first), 'sep=') !== 0) {
+        // Detect the column delimiter. Arabic Excel saves CSV files with
+        // ';' instead of ',', so we can't assume comma. Either:
+        //   - An explicit "sep=X" hint line is present, OR
+        //   - We sniff the first real line and pick whichever of , ; \t
+        //     appears most often.
+        $delimiter  = ',';
+        $peek       = ftell($fh);
+        $first      = fgets($fh);
+        if ($first !== false && preg_match('/^\s*sep=(.)/i', ltrim($first), $m)) {
+            $delimiter = $m[1];
+            // consumed the hint line — continue from next line
+        } else {
+            // Put the line back, then sniff it.
             fseek($fh, $peek);
+            $sample = $first ?: '';
+            $counts = [',' => substr_count($sample, ','), ';' => substr_count($sample, ';'), "\t" => substr_count($sample, "\t")];
+            arsort($counts);
+            $delimiter = array_key_first($counts) ?: ',';
+            if ($counts[$delimiter] === 0) $delimiter = ',';
         }
 
-        $header = fgetcsv($fh);
+        $header = fgetcsv($fh, 0, $delimiter);
         if (! $header) {
             fclose($fh);
             return ['created' => 0, 'updated' => 0, 'skipped' => [['row' => 1, 'error' => 'Empty file']]];
@@ -48,8 +62,8 @@ final class ImportClubsAction
         $header = array_map(fn ($h) => strtolower(trim((string) $h)), $header);
 
         $rowNum = 1;
-        DB::transaction(function () use ($fh, $header, &$created, &$updated, &$skipped, &$rowNum) {
-            while (($row = fgetcsv($fh)) !== false) {
+        DB::transaction(function () use ($fh, $header, $delimiter, &$created, &$updated, &$skipped, &$rowNum) {
+            while (($row = fgetcsv($fh, 0, $delimiter)) !== false) {
                 $rowNum++;
                 if (count($row) === 1 && trim((string) $row[0]) === '') continue;
 

@@ -36,14 +36,23 @@ final class ImportPlayersAction
             rewind($fh);
         }
 
-        // Skip the Excel "sep=," hint line if present.
-        $peek = ftell($fh);
-        $first = fgets($fh);
-        if ($first === false || stripos(ltrim($first), 'sep=') !== 0) {
+        // Detect the column delimiter. Arabic Excel defaults to ';' when
+        // saving CSVs, so we sniff the first line instead of assuming ','.
+        $delimiter = ',';
+        $peek      = ftell($fh);
+        $first     = fgets($fh);
+        if ($first !== false && preg_match('/^\s*sep=(.)/i', ltrim($first), $m)) {
+            $delimiter = $m[1];
+        } else {
             fseek($fh, $peek);
+            $sample = $first ?: '';
+            $counts = [',' => substr_count($sample, ','), ';' => substr_count($sample, ';'), "\t" => substr_count($sample, "\t")];
+            arsort($counts);
+            $delimiter = array_key_first($counts) ?: ',';
+            if ($counts[$delimiter] === 0) $delimiter = ',';
         }
 
-        $header = fgetcsv($fh);
+        $header = fgetcsv($fh, 0, $delimiter);
         if (! $header) {
             fclose($fh);
             return ['created' => 0, 'updated' => 0, 'skipped' => [['row' => 1, 'error' => 'Empty file']]];
@@ -51,8 +60,8 @@ final class ImportPlayersAction
         $header = array_map(fn ($h) => strtolower(trim((string) $h)), $header);
 
         $rowNum = 1;
-        DB::transaction(function () use ($fh, $header, &$created, &$updated, &$skipped, &$rowNum) {
-            while (($row = fgetcsv($fh)) !== false) {
+        DB::transaction(function () use ($fh, $header, $delimiter, &$created, &$updated, &$skipped, &$rowNum) {
+            while (($row = fgetcsv($fh, 0, $delimiter)) !== false) {
                 $rowNum++;
                 if (count($row) === 1 && trim((string) $row[0]) === '') continue; // blank line
 
