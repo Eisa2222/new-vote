@@ -1,5 +1,7 @@
-@php($locale = app()->getLocale())
-@php($dir = $locale === 'ar' ? 'rtl' : 'ltr')
+@php
+    $locale = app()->getLocale();
+    $dir    = $locale === 'ar' ? 'rtl' : 'ltr';
+@endphp
 <!DOCTYPE html>
 <html lang="{{ $locale }}" dir="{{ $dir }}">
 <head>
@@ -7,18 +9,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $campaign->localized('title') }}</title>
-    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    {{-- brand-head loads Tailwind CDN + the custom brand/ink/accent palette.
+         Without it all brand-* / ink-* utility classes silently no-op and
+         the page renders white. --}}
+    @include('partials.brand-head')
     <style>
-        body { font-family: '{{ $locale === 'ar' ? 'Tajawal' : 'Inter' }}', system-ui, sans-serif; }
         .candidate { cursor: pointer; }
-        .candidate.selected { border-color: #059669 !important; background: #ecfdf5; box-shadow: 0 0 0 2px #10b981; }
-        .candidate.selected .dot { border-color: #059669; background: #059669; }
+        .candidate.selected { border-color: #115C42 !important; background: #ECF5EF; box-shadow: 0 0 0 2px #1F7A49; }
+        .candidate.selected .dot { border-color: #115C42; background: #115C42; }
     </style>
 </head>
-<body class="bg-ink-50 text-ink-900">
+<body class="bg-ink-50 text-ink-900 min-h-screen">
 <div class="max-w-7xl mx-auto px-4 py-8 space-y-8">
 
     <section class="rounded-3xl bg-gradient-to-{{ $dir === 'rtl' ? 'l' : 'r' }} from-ink-950 via-ink-900 to-brand-800 text-white p-8 md:p-10 shadow-2xl">
@@ -126,14 +127,15 @@
             </section>
         @endforeach
 
-        <div class="sticky bottom-0 bg-white border-t border-gray-200 p-4 -mx-4 rounded-t-3xl shadow-lg">
-            <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
-                <div class="text-sm text-gray-500">
-                    <span id="globalProgress">0</span> / {{ $campaign->categories->sum('required_picks') }} {{ __('picks complete') }}
+        <div class="sticky bottom-0 inset-x-0 z-20 pt-4 pb-4 bg-gradient-to-t from-white via-white/95 to-transparent">
+            <div class="rounded-2xl border border-ink-200 bg-white shadow-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div class="text-sm font-semibold">
+                    <span id="globalProgress" class="text-brand-700 text-lg">0</span>
+                    <span class="text-ink-500">/ {{ $campaign->categories->sum('required_picks') }} {{ __('picks complete') }}</span>
                 </div>
                 <button type="submit" id="submitBtn" disabled
-                        class="rounded-2xl bg-brand-600 hover:bg-brand-700 text-white px-8 py-3 font-semibold disabled:bg-ink-300 disabled:cursor-not-allowed disabled:hover:bg-ink-300">
-                    {{ __('Submit My Vote') }}
+                        class="rounded-xl bg-brand-600 hover:bg-brand-700 text-white px-6 py-3 font-bold shadow-brand disabled:bg-ink-300 disabled:cursor-not-allowed disabled:hover:bg-ink-300 disabled:shadow-none">
+                    ✓ {{ __('Submit My Vote') }}
                 </button>
             </div>
         </div>
