@@ -53,13 +53,33 @@
         </div>
 
         @if($voter)
-            <div class="mt-5 inline-flex items-center gap-2 rounded-full bg-emerald-500/20 border border-emerald-300/40 px-3 py-1.5 text-xs font-semibold text-emerald-100">
-                <span>&#10003;</span>
-                <span>
-                    {{ __('Verified as') }}
-                    {{ $voter['method'] === 'national_id' ? __('National ID') : __('Mobile') }}:
-                    <strong>{{ $voter['masked'] }}</strong>
-                </span>
+            <div class="mt-5 inline-flex items-center gap-3 rounded-2xl bg-white/10 backdrop-blur border border-white/20 px-3 py-2">
+                @if(!empty($voter['photo']))
+                    <img src="{{ $voter['photo'] }}" alt="{{ $voter['name'] }}"
+                         class="w-10 h-10 rounded-full object-cover border-2 border-accent-400">
+                @else
+                    <div class="w-10 h-10 rounded-full bg-accent-500 text-white flex items-center justify-center font-extrabold">
+                        {{ mb_strtoupper(mb_substr($voter['name'] ?? '?', 0, 1)) }}
+                    </div>
+                @endif
+                <div class="text-start min-w-0">
+                    <div class="text-[10px] uppercase tracking-wider text-accent-400 font-bold">
+                        &#10003; {{ __('Verified voter') }}
+                    </div>
+                    <div class="font-bold text-white text-sm truncate">
+                        {{ $voter['name'] ?? __('Player') }}
+                        @if(!empty($voter['jersey']))
+                            <span class="ms-1 inline-block rounded bg-accent-500/30 text-accent-200 px-1.5 py-0.5 text-[10px] font-bold">#{{ $voter['jersey'] }}</span>
+                        @endif
+                    </div>
+                    @if(!empty($voter['club']))
+                        <div class="text-[11px] text-brand-100/80 truncate">{{ $voter['club'] }}</div>
+                    @endif
+                </div>
+                <div class="hidden md:block text-end text-[10px] text-brand-100/80 whitespace-nowrap border-s border-white/20 ps-3">
+                    {{ $voter['method'] === 'national_id' ? __('National ID') : __('Mobile') }}
+                    <div class="font-mono font-bold text-white text-xs">{{ $voter['masked'] }}</div>
+                </div>
             </div>
         @endif
     </div>

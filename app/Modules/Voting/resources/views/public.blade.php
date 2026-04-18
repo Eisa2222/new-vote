@@ -54,9 +54,34 @@
     @endif
 
     @isset($voter)
-        <div class="rounded-2xl bg-brand-50 border border-brand-200 text-brand-800 px-4 py-3 text-sm flex items-center gap-2">
-            <span>✓</span>
-            <span>{{ __('Verified as') }} {{ $voter['method'] === 'national_id' ? __('National ID') : __('Mobile') }}: <strong>{{ $voter['masked'] }}</strong></span>
+        <div class="rounded-2xl bg-brand-50 border border-brand-200 text-brand-800 p-4 flex items-center gap-3">
+            @if(!empty($voter['photo']))
+                <img src="{{ $voter['photo'] }}" alt="{{ $voter['name'] }}"
+                     class="w-12 h-12 rounded-full object-cover border-2 border-brand-500 flex-shrink-0">
+            @else
+                <div class="w-12 h-12 rounded-full bg-brand-600 text-white flex items-center justify-center font-bold text-lg flex-shrink-0">
+                    {{ mb_strtoupper(mb_substr($voter['name'] ?? '?', 0, 1)) }}
+                </div>
+            @endif
+            <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-2">
+                    <span class="text-emerald-600">✓</span>
+                    <span class="text-xs text-brand-700 font-semibold">{{ __('Verified voter') }}</span>
+                </div>
+                <div class="font-bold text-brand-900 truncate">
+                    {{ $voter['name'] ?? __('Player') }}
+                    @if(!empty($voter['jersey']))
+                        <span class="ms-1 inline-block rounded bg-brand-100 text-brand-700 px-1.5 py-0.5 text-[10px] font-bold">#{{ $voter['jersey'] }}</span>
+                    @endif
+                </div>
+                @if(!empty($voter['club']))
+                    <div class="text-xs text-brand-700/80 truncate">{{ $voter['club'] }}</div>
+                @endif
+            </div>
+            <div class="text-end text-xs text-brand-700/80 whitespace-nowrap">
+                {{ $voter['method'] === 'national_id' ? __('National ID') : __('Mobile') }}
+                <div class="font-mono font-bold text-brand-900">{{ $voter['masked'] }}</div>
+            </div>
         </div>
     @endisset
 

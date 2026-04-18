@@ -124,9 +124,21 @@ final class PublicVoteController extends Controller
         }
 
         $campaign = $loader->execute($token);
+
+        // Resolve the verified voter's display info (name + club) so the
+        // voting page can greet them by name instead of just the masked
+        // national-id / phone. Fall back gracefully if the player was
+        // deactivated between verification and this page load.
+        $player = \App\Modules\Players\Models\Player::with('club')->find($session['player_id'] ?? null);
         $voter = [
-            'masked' => IdentityNormalizer::mask((string) $session['value']),
-            'method' => $session['method'],
+            'masked'     => IdentityNormalizer::mask((string) $session['value']),
+            'method'     => $session['method'],
+            'name'       => $player?->localized('name'),
+            'club'       => $player?->club?->localized('name'),
+            'photo'      => $player?->photo_path
+                ? \Illuminate\Support\Facades\Storage::url($player->photo_path)
+                : null,
+            'jersey'     => $player?->jersey_number,
         ];
 
         $view = $campaign->type === CampaignType::TeamOfTheSeason ? 'voting::tos' : 'voting::public';
